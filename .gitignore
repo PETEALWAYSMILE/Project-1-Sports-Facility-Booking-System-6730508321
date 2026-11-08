@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js build output
+.next/
+frontend/.next/
+out/
+frontend/out/
+build/
+
+# Environment variables (keep secrets safe)
+backend/config/config.env
+.env
+.env*.local
+frontend/.env*.local
+
+# Logs & OS files
+*.log
+npm-debug.log*
+.DS_Store
+**/.DS_Store
+coverage/
+.vercel

@@ -1,0 +1,15 @@
+{
+  "name": "project-1-sports-facility-booking-system-6730508321",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Project 1: Sports Facility Booking System (Frontend + Backend)",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "start:backend": "npm start --prefix backend",
+    "seed": "npm run seed --prefix backend",
+    "seed:reset": "npm run seed:reset --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "start:frontend": "npm start --prefix frontend"
+  }
+}
