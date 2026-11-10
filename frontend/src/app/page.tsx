@@ -1,47 +1,48 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
-import Link from "next/link";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Facility, FacilityInput } from "@/types";
-import { api } from "@/lib/api";
+import { api, getTodayUtcString } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import {
+  ALL_SPORT_KEYS,
+  SPORT_META_MAP,
+  SportKey,
+  resolveSportKey,
+  setCustomFacilityImage,
+  useFavorites,
+} from "@/lib/ui-helpers";
+import SearchBar from "@/components/SearchBar";
+import CourtCard from "@/components/CourtCard";
 import FacilityModal from "@/components/FacilityModal";
 import {
-  Search,
-  MapPin,
-  Users,
-  Plus,
-  Edit3,
-  Trash2,
-  CalendarPlus,
-  Sparkles,
-  Filter,
+  Button,
+  CourtCardSkeleton,
+  EmptyState,
+  ErrorState,
+  SportIcon,
+} from "@/components/ui/Primitives";
+import { ConfirmDialog, Drawer, Modal, Toast } from "@/components/ui/Overlays";
+import {
+  SlidersHorizontal,
   ArrowUpDown,
-  Dumbbell,
-  Trophy,
+  X,
+  Info,
+  Search,
+  CalendarClock,
   CheckCircle2,
-  AlertCircle,
+  Plus,
+  LayoutGrid,
 } from "lucide-react";
 
-const getSportBadgeStyle = (sportType: string) => {
-  const s = sportType.toLowerCase();
-  if (s.includes("badminton"))
-    return "bg-emerald-100 text-emerald-800 border-emerald-200";
-  if (s.includes("tennis"))
-    return "bg-amber-100 text-amber-800 border-amber-200";
-  if (s.includes("futsal") || s.includes("football") || s.includes("soccer"))
-    return "bg-blue-100 text-blue-800 border-blue-200";
-  if (s.includes("gym") || s.includes("fitness"))
-    return "bg-purple-100 text-purple-800 border-purple-200";
-  if (s.includes("basketball"))
-    return "bg-orange-100 text-orange-800 border-orange-200";
-  return "bg-teal-100 text-teal-800 border-teal-200";
-};
+type SortOption = "name" | "priceAsc" | "priceDesc" | "capacityDesc";
 
 export default function HomePage() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
+  const userId = user?._id || user?.id;
+  const { toggleFavorite, isFavorite } = useFavorites(userId);
 
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,14 +50,24 @@ export default function HomePage() {
   const [toast, setToast] = useState<string | null>(null);
 
   // Filters & Sorting
+  const todayUtc = getTodayUtcString();
+  const [selectedDate, setSelectedDate] = useState<string>(todayUtc);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSport, setSelectedSport] = useState<string>("ALL");
   const [maxPrice, setMaxPrice] = useState<number>(2000);
-  const [sortBy, setSortBy] = useState<"name" | "priceAsc" | "priceDesc" | "capacityDesc">("name");
+  const [sortBy, setSortBy] = useState<SortOption>("name");
 
-  // Admin Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Filter Drawer/Popover & Rules Modal
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [rulesModalOpen, setRulesModalOpen] = useState(false);
+
+  // Admin Modals
+  const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
   const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
+  const [deletingFacility, setDeletingFacility] = useState<Facility | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const fetchFacilities = async () => {
     try {
@@ -68,7 +79,10 @@ export default function HomePage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Unable to load sports facilities from backend"
+          : t(
+              "ไม่สามารถโหลดข้อมูลสนามกีฬาได้ กรุณาลองใหม่อีกครั้ง",
+              "Unable to load sports facilities. Please try again."
+            )
       );
     } finally {
       setLoading(false);
@@ -77,6 +91,14 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchFacilities();
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const sp = params.get("sport");
+      if (sp && ALL_SPORT_KEYS.includes(sp as SportKey)) {
+        setSelectedSport(sp);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const showToast = (msg: string) => {
@@ -84,24 +106,22 @@ export default function HomePage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const sportCategories = useMemo(() => {
-    const types = Array.from(
-      new Set(facilities.map((f) => f.sportType.trim()))
-    ).filter(Boolean);
-    return ["ALL", ...types];
-  }, [facilities]);
-
   const filteredFacilities = useMemo(() => {
     return facilities
       .filter((f) => {
+        const sportKey = resolveSportKey(f.sportType);
+        const sportMeta = SPORT_META_MAP[sportKey];
+        const q = searchQuery.trim().toLowerCase();
+
         const matchesSearch =
-          f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          f.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          f.sportType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          f._id.toLowerCase().includes(searchQuery.toLowerCase());
+          !q ||
+          f.name.toLowerCase().includes(q) ||
+          f.location.toLowerCase().includes(q) ||
+          f.sportType.toLowerCase().includes(q) ||
+          sportMeta.labelTH.toLowerCase().includes(q);
+
         const matchesSport =
-          selectedSport === "ALL" ||
-          f.sportType.toLowerCase() === selectedSport.toLowerCase();
+          selectedSport === "ALL" || sportKey === selectedSport;
         const matchesPrice = f.hourlyRate <= maxPrice;
         return matchesSearch && matchesSport && matchesPrice;
       })
@@ -113,428 +133,642 @@ export default function HomePage() {
       });
   }, [facilities, searchQuery, selectedSport, maxPrice, sortBy]);
 
-  const handleSaveFacility = async (input: FacilityInput) => {
+  const hasActiveFilters =
+    selectedSport !== "ALL" ||
+    searchQuery.trim() !== "" ||
+    maxPrice < 2000 ||
+    sortBy !== "name";
+
+  const clearAllFilters = () => {
+    setSelectedSport("ALL");
+    setSearchQuery("");
+    setMaxPrice(2000);
+    setSortBy("name");
+  };
+
+  const sortLabelMap: Record<SortOption, string> = {
+    name: t("เรียงตามชื่อ (A-Z)", "Name (A-Z)"),
+    priceAsc: t("ราคา: ต่ำ ไป สูง", "Price: Low to High"),
+    priceDesc: t("ราคา: สูง ไป ต่ำ", "Price: High to Low"),
+    capacityDesc: t("ความจุผู้เล่นมากสุด", "Capacity: High to Low"),
+  };
+
+  const handleSaveFacility = async (
+    input: FacilityInput,
+    customImageUrl?: string
+  ) => {
     if (editingFacility) {
-      await api.updateFacility(editingFacility._id, input);
+      const res = await api.updateFacility(editingFacility._id, input);
+      if (customImageUrl !== undefined) {
+        setCustomFacilityImage(res.data._id, customImageUrl);
+      }
       showToast(
         t(
-          `แก้ไขสนาม "${input.name}" สำเร็จ`,
-          `Updated facility "${input.name}" successfully`
+          `บันทึกการแก้ไข "${input.name}" เรียบร้อยแล้ว`,
+          `Updated "${input.name}" successfully`
         )
       );
     } else {
-      await api.createFacility(input);
+      const res = await api.createFacility(input);
+      if (customImageUrl && res.data?._id) {
+        setCustomFacilityImage(res.data._id, customImageUrl);
+      }
       showToast(
         t(
-          `เพิ่มสนาม "${input.name}" สำเร็จ`,
-          `Created facility "${input.name}" successfully`
+          `เพิ่มสนาม "${input.name}" เรียบร้อยแล้ว`,
+          `Added "${input.name}" successfully`
         )
       );
     }
     await fetchFacilities();
   };
 
-  const handleDeleteFacility = async (facility: Facility) => {
-    const confirmed = window.confirm(
-      t(
-        `ต้องการลบสนาม "${facility.name}" ใช่หรือไม่?`,
-        `Are you sure you want to delete "${facility.name}"?`
-      )
-    );
-    if (!confirmed) return;
-
+  const handleConfirmDeleteFacility = async () => {
+    if (!deletingFacility) return;
     try {
-      await api.deleteFacility(facility._id);
+      setDeleteSubmitting(true);
+      await api.deleteFacility(deletingFacility._id);
       showToast(
         t(
-          `ลบสนาม "${facility.name}" เรียบร้อยแล้ว`,
-          `Deleted facility "${facility.name}"`
+          `ลบสนาม "${deletingFacility.name}" เรียบร้อยแล้ว`,
+          `Removed "${deletingFacility.name}"`
         )
       );
+      setDeletingFacility(null);
       await fetchFacilities();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Delete failed");
+      showToast(
+        err instanceof Error
+          ? err.message
+          : t("ไม่สามารถลบสนามได้", "Failed to delete facility")
+      );
+    } finally {
+      setDeleteSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-white py-12 sm:py-16 border-b border-emerald-900/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            <div className="max-w-2xl space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold">
-                <Sparkles className="w-3.5 h-3.5" />
+    <div className="space-y-10 pb-8">
+      {/* Top Search Section (Light, airy, clean one-line heading above prominent SearchBar) */}
+      <section className="bg-gradient-to-b from-white via-white/80 to-transparent border-b border-black/5 py-8 sm:py-10">
+        <div className="max-w-container mx-auto px-4 sm:px-6 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+            <div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-[#1d1d1f] tracking-tight">
                 {t(
-                  "Project 1: ระบบจองสถานที่และสนามกีฬาออนไลน์",
-                  "Project 1: Real-Time Sports Facility Booking System"
-                )}
-              </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
-                {t(
-                  "ค้นหาและจองสนามกีฬาได้ทันที",
-                  "Find & Book Your Ideal Sports Arena"
+                  "ค้นหาและจองสนามกีฬาพร้อมเล่นวันนี้",
+                  "Find and book sports courts ready for play"
                 )}
               </h1>
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                {t(
-                  "รองรับสนามแบดมินตัน สนามเทนนิส สนามฟุตซอล ห้องออกกำลังกาย และสนามบาสเกตบอล พร้อมตารางตรวจสอบเวลาว่างแบบเรียลไทม์และระบบคำนวณค่าบริการอัตโนมัติ",
-                  "Browse badminton courts, tennis arenas, futsal pitches, fitness studios, and basketball halls with interactive time-slot availability and instant price estimation."
-                )}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                {user ? (
-                  <Link
-                    href="/bookings"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg transition"
-                  >
-                    <CalendarPlus className="w-4 h-4" />
-                    {user.role === "admin"
-                      ? t("ดูรายการจองทั้งหมดในระบบ", "Manage All Bookings")
-                      : t("ดูรายการจองของฉัน", "View My Bookings")}
-                  </Link>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg transition"
-                    >
-                      {t("เข้าสู่ระบบเพื่อจองสนาม", "Log In to Book Facility")}
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 transition"
-                    >
-                      {t("สมัครสมาชิกใหม่", "Create Account")}
-                    </Link>
-                  </>
-                )}
-
-                {user?.role === "admin" && (
-                  <button
-                    onClick={() => {
-                      setEditingFacility(null);
-                      setIsModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-lg transition"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {t("เพิ่มสนามกีฬาใหม่ (Admin)", "Add New Facility")}
-                  </button>
-                )}
-              </div>
             </div>
-
-            {/* Quick Stats Cards */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:w-80 shrink-0">
-              <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4">
-                <Trophy className="w-5 h-5 text-emerald-400 mb-2" />
-                <div className="text-2xl font-extrabold">{facilities.length}</div>
-                <div className="text-xs text-slate-300">
-                  {t("สนามที่เปิดให้บริการ", "Active Facilities")}
-                </div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4">
-                <Dumbbell className="w-5 h-5 text-amber-400 mb-2" />
-                <div className="text-2xl font-extrabold">
-                  {Math.max(0, sportCategories.length - 1)}
-                </div>
-                <div className="text-xs text-slate-300">
-                  {t("ประเภทกีฬา", "Sport Categories")}
-                </div>
-              </div>
-              <div className="col-span-2 bg-emerald-900/40 border border-emerald-500/30 rounded-2xl p-4 text-xs text-emerald-100 space-y-1">
-                <div className="font-bold text-emerald-300">
-                  {t("เงื่อนไขการจอง (Booking Rules):", "Booking Conditions:")}
-                </div>
-                <div>• {t("จองล่วงหน้าตั้งแต่วันปัจจุบันเป็นต้นไป", "Book from today onwards (no past dates)")}</div>
-                <div>• {t("จองได้สูงสุด 2 ชั่วโมงต่อ 1 รายการ (0.5 - 2 ชม.)", "Up to 2 hours per booking (0.5 - 2.0 hrs)")}</div>
-                <div>• {t("ระบบป้องกันการจองเวลาซ้อนทับอัตโนมัติ", "Automatic overlap prevention for facility & member")}</div>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setRulesModalOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#0071e3] hover:underline self-start sm:self-auto min-h-[36px]"
+            >
+              <Info className="w-4 h-4 shrink-0" />
+              <span>{t("เงื่อนไขการจองสนาม", "Booking Rules")}</span>
+            </button>
           </div>
-        </div>
-      </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Toast notification */}
-        {toast && (
-          <div className="flex items-center gap-2.5 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm font-semibold shadow-sm">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-            <span>{toast}</span>
-          </div>
-        )}
+          <SearchBar
+            selectedSport={selectedSport}
+            onSportChange={setSelectedSport}
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            minDate={todayUtc}
+            onSearchSubmit={() => {
+              resultsRef.current?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
 
-        {/* Search & Filter Bar */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            {/* Search Input */}
-            <div className="md:col-span-5 relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t(
-                  "ค้นหาชื่อสนาม, ประเภทกีฬา, สถานที่ตั้ง หรือ ID...",
-                  "Search by facility name, sport type, location, or ID..."
-                )}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-
-            {/* Max Hourly Rate Filter */}
-            <div className="md:col-span-4 flex items-center gap-3 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
-              <Filter className="w-4 h-4 text-emerald-600 shrink-0" />
-              <div className="flex-1">
-                <div className="flex justify-between text-[11px] font-semibold text-slate-600 mb-1">
-                  <span>{t("ราคาสูงสุดต่อชั่วโมง", "Max Hourly Rate")}</span>
-                  <span className="text-emerald-700 font-bold">
-                    ฿{maxPrice.toLocaleString()}/hr
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={100}
-                  max={2000}
-                  step={50}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full accent-emerald-600 h-1.5 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Sort By */}
-            <div className="md:col-span-3 flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4 text-slate-400 shrink-0" />
-              <select
-                value={sortBy}
-                onChange={(e) =>
-                  setSortBy(
-                    e.target.value as
-                      | "name"
-                      | "priceAsc"
-                      | "priceDesc"
-                      | "capacityDesc"
-                  )
-                }
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          {/* Horizontal Circular Sport Category Strip */}
+          <div
+            role="tablist"
+            aria-label={t("เลือกประเภทกีฬา", "Filter by sport category")}
+            className="flex items-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar pt-2 pb-1"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={selectedSport === "ALL"}
+              onClick={() => setSelectedSport("ALL")}
+              className="group flex flex-col items-center gap-2 min-w-[72px] py-1 focus:outline-none rounded-xl"
+            >
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-150 ${
+                  selectedSport === "ALL"
+                    ? "bg-[#0071e3] text-white border-transparent shadow-sm scale-105"
+                    : "bg-white text-slate-600 border-slate-200/90 group-hover:border-[#0071e3] group-hover:text-[#0071e3] shadow-soft"
+                }`}
               >
-                <option value="name">
-                  {t("เรียงตามชื่อสนาม (A-Z)", "Sort by Name (A-Z)")}
-                </option>
-                <option value="priceAsc">
-                  {t("ราคา: ต่ำ -> สูง", "Hourly Rate: Low to High")}
-                </option>
-                <option value="priceDesc">
-                  {t("ราคา: สูง -> ต่ำ", "Hourly Rate: High to Low")}
-                </option>
-                <option value="capacityDesc">
-                  {t("ความจุ: มาก -> น้อย", "Capacity: High to Low")}
-                </option>
-              </select>
-            </div>
-          </div>
+                <LayoutGrid className="w-5 h-5" />
+              </div>
+              <span
+                className={`text-xs font-medium whitespace-nowrap ${
+                  selectedSport === "ALL"
+                    ? "text-[#0071e3] font-semibold"
+                    : "text-slate-700"
+                }`}
+              >
+                {t("ทั้งหมด", "All")}
+              </span>
+            </button>
 
-          {/* Sport Category Pills */}
-          <div className="flex items-center gap-2 flex-wrap pt-1">
-            {sportCategories.map((sport) => {
-              const active = selectedSport === sport;
+            {ALL_SPORT_KEYS.map((key) => {
+              const meta = SPORT_META_MAP[key];
+              const active = selectedSport === key;
               return (
                 <button
-                  key={sport}
-                  onClick={() => setSelectedSport(sport)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
-                    active
-                      ? "bg-emerald-600 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setSelectedSport(key)}
+                  className="group flex flex-col items-center gap-2 min-w-[76px] py-1 focus:outline-none rounded-xl"
                 >
-                  {sport === "ALL"
-                    ? t("ทุกประเภทกีฬา (All Sports)", "All Sports")
-                    : sport}
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-150 ${
+                      active
+                        ? "bg-[#0071e3] text-white border-transparent shadow-sm scale-105"
+                        : `${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder} group-hover:scale-105 shadow-soft`
+                    }`}
+                  >
+                    <SportIcon sportType={key} className="w-5 h-5" />
+                  </div>
+                  <span
+                    className={`text-xs font-medium whitespace-nowrap ${
+                      active ? "text-[#0071e3] font-semibold" : "text-slate-700"
+                    }`}
+                  >
+                    {lang === "TH" ? meta.labelTH : meta.labelEN}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
+      </section>
 
-        {/* Section Header */}
-        <div className="flex items-center justify-between">
+      {/* Main Content Container */}
+      <div
+        ref={resultsRef}
+        className="max-w-container mx-auto px-4 sm:px-6 space-y-6"
+      >
+        {/* Header Bar + Filter/Sort Buttons */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              {t("รายการสถานที่และสนามกีฬา", "Available Sports Facilities")}
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
+              {t("สนามกีฬาที่เปิดให้บริการ", "Available Courts")}
             </h2>
-            <p className="text-xs text-slate-500">
-              {t(
-                `แสดง ${filteredFacilities.length} จากทั้งหมด ${facilities.length} สนาม`,
-                `Showing ${filteredFacilities.length} of ${facilities.length} facilities`
-              )}
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 tabular-price">
+              {loading
+                ? t("กำลังค้นหาสนาม...", "Loading courts...")
+                : t(
+                    `พบ ${filteredFacilities.length} สนาม`,
+                    `Found ${filteredFacilities.length} courts`
+                  )}
             </p>
           </div>
 
-          {user?.role === "admin" && (
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Compact Filter & Sort Drawer Trigger */}
             <button
-              onClick={() => {
-                setEditingFacility(null);
-                setIsModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition"
+              type="button"
+              onClick={() => setFilterDrawerOpen(true)}
+              className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 rounded-full border border-slate-300/80 bg-white hover:bg-slate-50 text-xs sm:text-sm font-medium text-[#1d1d1f] shadow-sm transition-all active:scale-95"
             >
-              <Plus className="w-4 h-4" />
-              {t("เพิ่มสนามกีฬา", "Add Facility")}
+              <SlidersHorizontal className="w-4 h-4 text-[#0071e3]" />
+              <span>{t("ตัวกรองและเรียงลำดับ", "Filter & Sort")}</span>
+              {(maxPrice < 2000 || sortBy !== "name") && (
+                <span className="w-2 h-2 rounded-full bg-[#0071e3]" />
+              )}
             </button>
-          )}
+
+            {user?.role === "admin" && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setEditingFacility(null);
+                  setIsFacilityModalOpen(true);
+                }}
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t("เพิ่มสนาม", "Add Court")}</span>
+              </Button>
+            )}
+          </div>
         </div>
 
-        {/* Error / Loading / Facilities Grid */}
-        {error && (
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <span>{error}</span>
+        {/* Active Filter Chips Row */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedSport !== "ALL" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft">
+                <span>
+                  {t("กีฬา:", "Sport:")}{" "}
+                  {lang === "TH"
+                    ? SPORT_META_MAP[selectedSport as SportKey]?.labelTH
+                    : SPORT_META_MAP[selectedSport as SportKey]?.labelEN}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSport("ALL")}
+                  aria-label={t("ลบตัวกรองประเภทกีฬา", "Remove sport filter")}
+                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            )}
+
+            {searchQuery.trim() !== "" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft">
+                <span>
+                  {t("คำค้น:", "Search:")} &ldquo;{searchQuery.trim()}&rdquo;
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  aria-label={t("ลบคำค้นหา", "Remove search keyword")}
+                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            )}
+
+            {maxPrice < 2000 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft tabular-price">
+                <span>
+                  {t("ไม่เกิน", "Up to")} ฿{maxPrice.toLocaleString()}/{t("ชม.", "hr")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMaxPrice(2000)}
+                  aria-label={t("ลบตัวกรองราคา", "Remove price filter")}
+                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            )}
+
+            {sortBy !== "name" && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft">
+                <ArrowUpDown className="w-3 h-3 text-primary" />
+                <span>{sortLabelMap[sortBy]}</span>
+                <button
+                  type="button"
+                  onClick={() => setSortBy("name")}
+                  aria-label={t("คืนค่าการเรียงลำดับ", "Reset sort")}
+                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            )}
+
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="text-xs font-medium text-primary hover:text-primary-hover px-2 py-1"
+            >
+              {t("ล้างตัวกรอง", "Clear All")}
+            </button>
           </div>
         )}
 
-        {loading ? (
+        {/* 4 States: Error / Loading Skeleton / Empty / Success Grid */}
+        {error ? (
+          <ErrorState message={error} onRetry={fetchFacilities} />
+        ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div
-                key={n}
-                className="h-64 rounded-2xl bg-white border border-slate-200 p-6 animate-pulse flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="w-24 h-6 bg-slate-200 rounded-lg" />
-                  <div className="w-3/4 h-6 bg-slate-200 rounded-lg" />
-                  <div className="w-1/2 h-4 bg-slate-100 rounded-lg" />
-                </div>
-                <div className="w-full h-10 bg-slate-200 rounded-xl" />
-              </div>
+              <CourtCardSkeleton key={n} />
             ))}
           </div>
         ) : filteredFacilities.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
-            <Dumbbell className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-base font-bold text-slate-700">
-              {t(
-                "ไม่พบสนามกีฬาที่ตรงกับเงื่อนไขการค้นหา",
-                "No matching sports facilities found"
-              )}
-            </h3>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedSport("ALL");
-                setMaxPrice(2000);
-              }}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 transition"
-            >
-              {t("ล้างตัวกรองทั้งหมด", "Reset Filters")}
-            </button>
-          </div>
+          <EmptyState
+            icon={<Search className="w-6 h-6" />}
+            title={t(
+              "ไม่พบสนามกีฬาที่ตรงกับตัวกรอง",
+              "No courts match your current filters"
+            )}
+            description={t(
+              "ลองเปลี่ยนประเภทกีฬา ปรับช่วงราคา หรือล้างตัวกรองเพื่อดูสนามทั้งหมดที่เปิดให้บริการ",
+              "Try selecting another sport category, adjusting your price range, or clearing filters."
+            )}
+            actionLabel={t("ล้างตัวกรองทั้งหมด", "Reset All Filters")}
+            onAction={clearAllFilters}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredFacilities.map((facility) => (
-              <div
+              <CourtCard
                 key={facility._id}
-                className="group bg-white rounded-2xl border border-slate-200/90 hover:border-emerald-500/60 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden"
-              >
-                <div className="p-6 space-y-4">
-                  {/* Top Badge & Price */}
-                  <div className="flex items-start justify-between gap-2">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${getSportBadgeStyle(
-                        facility.sportType
-                      )}`}
-                    >
-                      {facility.sportType}
-                    </span>
-                    <div className="text-right">
-                      <span className="text-xl font-extrabold text-emerald-600">
-                        ฿{facility.hourlyRate.toLocaleString()}
-                      </span>
-                      <span className="text-xs text-slate-500 block">
-                        {t("/ ชั่วโมง", "/ hour")}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Facility Name & Details */}
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                      {facility.name}
-                    </h3>
-                    <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                      ID: {facility._id}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2 pt-1 text-xs text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{facility.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>
-                        {t("ความจุสูงสุด:", "Max Capacity:")}{" "}
-                        <strong className="text-slate-900">
-                          {facility.capacity} {t("คน", "persons")}
-                        </strong>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Footer Actions */}
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <Link
-                    href={`/facilities/${facility._id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition"
-                  >
-                    <CalendarPlus className="w-4 h-4" />
-                    {user?.role === "admin"
-                      ? t("ดูรายละเอียด / ตารางเวลา", "View Details & Schedule")
-                      : t("เช็คเวลาว่าง & จองสนาม", "Check Slots & Book")}
-                  </Link>
-
-                  {user?.role === "admin" && (
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => {
-                          setEditingFacility(facility);
-                          setIsModalOpen(true);
-                        }}
-                        className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-700 transition"
-                        title={t("แก้ไขสนาม", "Edit Facility")}
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteFacility(facility)}
-                        className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 transition"
-                        title={t("ลบสนาม", "Delete Facility")}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+                facility={facility}
+                selectedDate={selectedDate}
+                isFavorite={isFavorite(facility._id)}
+                onToggleFavorite={toggleFavorite}
+                adminActions={
+                  user?.role === "admin"
+                    ? {
+                        onEdit: (fac) => {
+                          setEditingFacility(fac);
+                          setIsFacilityModalOpen(true);
+                        },
+                        onDelete: (fac) => setDeletingFacility(fac),
+                      }
+                    : undefined
+                }
+              />
             ))}
           </div>
         )}
+
+        {/* "จองง่ายใน 3 ขั้นตอน" (Easy Booking in 3 Steps) */}
+        <section
+          aria-labelledby="how-it-works-heading"
+          className="pt-8 mt-12 border-t border-slate-200"
+        >
+          <div className="bg-white rounded-card border border-slate-200 p-6 sm:p-8 shadow-soft">
+            <div className="text-center max-w-xl mx-auto mb-8">
+              <h2
+                id="how-it-works-heading"
+                className="text-lg sm:text-xl font-semibold text-slate-900"
+              >
+                {t("จองง่ายใน 3 ขั้นตอน", "Book Your Court in 3 Simple Steps")}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                {t(
+                  "เช็คตารางเวลาว่างและล็อกคิวสนามได้ทันทีโดยไม่ต้องรอคอนเฟิร์มผ่านแชท",
+                  "Check live court availability and lock in your slot instantly."
+                )}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-start gap-4 p-4 rounded-control bg-slate-50/70 border border-slate-100">
+                <div className="w-10 h-10 rounded-control bg-primary-light text-primary flex items-center justify-center shrink-0 font-semibold text-sm">
+                  <Search className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-primary">
+                    {t("ขั้นตอนที่ 1", "Step 1")}
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">
+                    {t("ค้นหาสนามที่ต้องการ", "Find Your Court")}
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {t(
+                      "เลือกประเภทกีฬา ทำเล และเปรียบเทียบราคาพร้อมสิ่งอำนวยความสะดวกครบถ้วน",
+                      "Filter by sport, location, and hourly rate to find the right arena."
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 rounded-control bg-slate-50/70 border border-slate-100">
+                <div className="w-10 h-10 rounded-control bg-primary-light text-primary flex items-center justify-center shrink-0 font-semibold text-sm">
+                  <CalendarClock className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-primary">
+                    {t("ขั้นตอนที่ 2", "Step 2")}
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">
+                    {t("เลือกวันและช่วงเวลาว่าง", "Pick Date & Time Slot")}
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {t(
+                      "เลือกช่วงเวลาทีละ 30 นาที (0.5 - 2 ชม.) ระบบคำนวณราคาและกันคิวซ้อนทับอัตโนมัติ",
+                      "Select 30-minute increments (0.5 to 2 hrs) with live overlap protection."
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 rounded-control bg-slate-50/70 border border-slate-100">
+                <div className="w-10 h-10 rounded-control bg-primary-light text-primary flex items-center justify-center shrink-0 font-semibold text-sm">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-medium text-primary">
+                    {t("ขั้นตอนที่ 3", "Step 3")}
+                  </div>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">
+                    {t("ยืนยันและรับใบจองทันที", "Confirm & Play")}
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {t(
+                      "รับรหัสการจองและ QR Pass สำหรับแสดงหน้าสนามหรือเพิ่มลงปฏิทินได้ทันที",
+                      "Receive your SAH booking code and QR pass ready for check-in."
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
-      {/* Admin Add/Edit Modal */}
+      {/* Filter & Sort Drawer / Bottom Sheet */}
+      <Drawer
+        isOpen={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        title={t("ตัวกรองและการเรียงลำดับ", "Filter & Sort Courts")}
+        subtitle={t(
+          "ปรับแต่งการแสดงผลรายการสนามกีฬาตามงบประมาณและลำดับที่ต้องการ",
+          "Refine court listings by hourly budget and sort preference"
+        )}
+        footer={
+          <div className="flex items-center justify-between w-full gap-3">
+            <Button variant="ghost" onClick={clearAllFilters}>
+              {t("ล้างค่าทั้งหมด", "Reset")}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => setFilterDrawerOpen(false)}
+            >
+              {t(
+                `แสดงผลลัพธ์ (${filteredFacilities.length})`,
+                `Show Courts (${filteredFacilities.length})`
+              )}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Sort Order */}
+          <div className="space-y-2.5">
+            <label className="block text-sm font-semibold text-slate-900">
+              {t("เรียงลำดับตาม", "Sort By")}
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              {(
+                ["name", "priceAsc", "priceDesc", "capacityDesc"] as SortOption[]
+              ).map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setSortBy(opt)}
+                  className={`min-h-[44px] px-4 py-2.5 rounded-control border text-left text-sm font-medium transition-colors flex items-center justify-between ${
+                    sortBy === opt
+                      ? "bg-primary-light border-primary text-primary"
+                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  <span>{sortLabelMap[opt]}</span>
+                  {sortBy === opt && <CheckCircle2 className="w-4 h-4" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Max Hourly Price */}
+          <div className="space-y-3 pt-4 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="price-range-slider"
+                className="text-sm font-semibold text-slate-900"
+              >
+                {t("งบประมาณสูงสุดต่อชั่วโมง", "Max Hourly Rate")}
+              </label>
+              <span className="text-sm font-semibold text-primary tabular-price">
+                ฿{maxPrice.toLocaleString()} / {t("ชม.", "hr")}
+              </span>
+            </div>
+
+            <input
+              id="price-range-slider"
+              type="range"
+              min={100}
+              max={2000}
+              step={50}
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              className="w-full accent-[#0071e3] h-2 cursor-pointer"
+            />
+
+            <div className="flex justify-between text-xs text-slate-400 tabular-price">
+              <span>฿100</span>
+              <span>฿500</span>
+              <span>฿1,000</span>
+              <span>฿2,000</span>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 pt-1">
+              {[200, 400, 800, 2000].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setMaxPrice(preset)}
+                  className={`min-h-[38px] rounded-control border text-xs font-medium tabular-price transition-colors ${
+                    maxPrice === preset
+                      ? "bg-primary text-white border-primary"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {preset === 2000 ? t("ทั้งหมด", "All") : `≤ ฿${preset}`}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Drawer>
+
+      {/* Booking Rules Modal */}
+      <Modal
+        isOpen={rulesModalOpen}
+        onClose={() => setRulesModalOpen(false)}
+        title={t("เงื่อนไขและข้อกำหนดการจองสนาม", "Court Booking Rules & Policy")}
+        subtitle={t(
+          "กติกาการจองเพื่อให้สมาชิกทุกคนเข้าใช้งานสนามได้อย่างทั่วถึง",
+          "Standard reservation guidelines for all SportArenaHub members"
+        )}
+        footer={
+          <Button variant="primary" onClick={() => setRulesModalOpen(false)}>
+            {t("รับทราบ", "Got It")}
+          </Button>
+        }
+      >
+        <ul className="space-y-3 text-sm text-slate-700">
+          <li className="flex items-start gap-3 p-3 rounded-control bg-slate-50 border border-slate-200/80">
+            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold text-slate-900 block">
+                {t("จองล่วงหน้าตั้งแต่วันนี้เป็นต้นไป", "Advance Booking from Today Onwards")}
+              </strong>
+              <span className="text-xs text-slate-600">
+                {t(
+                  "สามารถเลือกจองคิวสนามตั้งแต่วันปัจจุบันเป็นต้นไป ไม่สามารถเลือกวันที่ผ่านมาแล้วได้",
+                  "Reservations are open from the current date onwards."
+                )}
+              </span>
+            </div>
+          </li>
+          <li className="flex items-start gap-3 p-3 rounded-control bg-slate-50 border border-slate-200/80">
+            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold text-slate-900 block">
+                {t("ระยะเวลา 0.5 – 2 ชั่วโมง ต่อรายการ", "0.5 to 2 Hours per Booking")}
+              </strong>
+              <span className="text-xs text-slate-600">
+                {t(
+                  "เลือกช่วงเวลาได้ทีละ 30 นาที สูงสุดไม่เกิน 2 ชั่วโมงต่อ 1 รายการจอง และต้องสิ้นสุดภายในวันเดียวกัน",
+                  "Book in 30-minute increments from 30 minutes up to 2 hours per reservation."
+                )}
+              </span>
+            </div>
+          </li>
+          <li className="flex items-start gap-3 p-3 rounded-control bg-slate-50 border border-slate-200/80">
+            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <strong className="font-semibold text-slate-900 block">
+                {t("ป้องกันเวลาซ้อนทับอัตโนมัติ", "Automatic Overlap Protection")}
+              </strong>
+              <span className="text-xs text-slate-600">
+                {t(
+                  "ระบบตรวจสอบทั้งคิวของสนามและคิวของสมาชิก เพื่อป้องกันการจองซ้อนในช่วงเวลาเดียวกัน",
+                  "Prevents double-booking on the same court or overlapping slots for the same member."
+                )}
+              </span>
+            </div>
+          </li>
+        </ul>
+      </Modal>
+
+      {/* Admin Add/Edit Facility Modal */}
       <FacilityModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isFacilityModalOpen}
+        onClose={() => setIsFacilityModalOpen(false)}
         onSubmit={handleSaveFacility}
         initialData={editingFacility}
       />
+
+      {/* Admin Delete Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={Boolean(deletingFacility)}
+        onClose={() => setDeletingFacility(null)}
+        onConfirm={handleConfirmDeleteFacility}
+        loading={deleteSubmitting}
+        title={t("ยืนยันการลบสนามกีฬา", "Delete Sports Court")}
+        description={t(
+          `คุณต้องการลบสนาม "${deletingFacility?.name || ""}" ออกจากรายการที่เปิดให้บริการใช่หรือไม่?`,
+          `Are you sure you want to remove "${deletingFacility?.name || ""}" from active listings?`
+        )}
+        policyNotice={t(
+          "เมื่อลบสนามแล้ว สมาชิกจะไม่สามารถค้นหาหรือสร้างการจองใหม่ในสนามนี้ได้อีก",
+          "Once removed, members will no longer be able to book new slots on this court."
+        )}
+        confirmLabel={t("ยืนยันลบสนาม", "Delete Court")}
+      />
+
+      <Toast message={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

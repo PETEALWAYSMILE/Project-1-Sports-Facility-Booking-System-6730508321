@@ -2,8 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Apple Signature Blue Primary Token (WCAG AA compliant on white & with white text) */
+  --color-primary: #0071e3;
+  --color-primary-hover: #0077ed;
+  --color-primary-active: #0062c4;
+  --color-primary-light: #f0f7ff;
+  --color-primary-border: #bae0ff;
+
+  /* Apple Neutral Surfaces & Text */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f5f7;
+  --color-surface-subtle: #ebebed;
+  --color-border: #e5e5ea;
+  --color-text-main: #1d1d1f;
+  --color-text-secondary: #424245;
+  --color-text-muted: #86868b;
+}
+
 @layer base {
+  html {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", var(--font-ibm-plex-thai), "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif;
+    color: var(--color-text-main);
+    background-color: var(--color-surface-muted);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-[#f5f5f7] text-[#1d1d1f] font-normal leading-relaxed;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Typography Scale - Apple clean weights */
+  h1 {
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight text-[#1d1d1f] leading-snug;
+  }
+
+  h2 {
+    @apply text-xl sm:text-2xl font-semibold tracking-tight text-[#1d1d1f] leading-snug;
+  }
+
+  h3 {
+    @apply text-base sm:text-lg font-semibold text-[#1d1d1f] leading-normal;
+  }
+
+  /* Focus ring standard for keyboard navigation */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-[#0071e3] ring-offset-2 ring-offset-white;
+  }
+}
+
+.tabular-price {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hide scrollbar for horizontal pill scrollers while keeping scrollability */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
