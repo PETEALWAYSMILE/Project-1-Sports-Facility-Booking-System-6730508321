@@ -8,30 +8,96 @@
 
 ---
 
-## 1. User Interface Flow Diagram
+## 1. User Interface Flow Design (Documentation)
+
+- **Official Figma / FigJam Board**: [Sports Facility Booking - UI Flow Design](https://www.figma.com/board/MS3BG3C05BY7sJkbuGG6Cy?utm_source=other&utm_content=edit_in_figjam)
+- **Figma Design Project**: [Figma Design Canvas](https://www.figma.com/design/3levmPxU4CJg8EMvz4tReB)
+
+### UI Flow Architecture Diagram (Presentation Journey Steps 0 – 14)
 
 ```mermaid
-flowchart TD
-    Visitor["ผู้เยี่ยมชม (Public / Guest)"] --> Home["หน้าแรก & รายการสนามกีฬา (/)"]
-    Home --> SearchFilter["ค้นหา / กรองประเภทกีฬา / กรองราคา / เรียงลำดับ"]
-    Home --> FacilityDetail["หน้ารายละเอียดสนาม & ตารางเวลาว่าง (/facilities/[id])"]
-    
-    Visitor --> AuthPage["หน้าเข้าสู่ระบบ / สมัครสมาชิก (/login, /register)"]
-    AuthPage -->|"เข้าสู่ระบบด้วย Email & Password"| JWT["รับ JWT Token (เก็บแยกต่อ Tab ด้วย sessionStorage)"]
+flowchart LR
+    subgraph publicFlow ["Lane 1: Public and Guest Discovery Flow"]
+        startNode(["Start: Guest Visitor"]) --> step0["[Step 0] Intro: Project Scope and UI Flow"]
+        step0 --> step1Reg["[Step 1] User Registration Form (/register)"]
+        step1Reg --> valCheck{"Form Validation Check: Valid Email, Tel, Password >= 6"}
+        valCheck -->|"Invalid Input"| errReg["Validation Error Toast / Alert"]
+        errReg --> step1Reg
+        valCheck -->|"Valid Input"| regSuccess["Account Created Successfully"]
+        regSuccess --> step2Login["[Step 2] User Log-in Screen (/login)"]
+        step2Login --> authCheck{"Credentials Validation Check"}
+        authCheck -->|"Incorrect Password"| errLogin["Error 401: Invalid Credentials"]
+        errLogin --> step2Login
+        authCheck -->|"Auth Success"| jwtIssue["Issue JWT Bearer Token (Store in sessionStorage)"]
+        jwtIssue --> roleBranch{"Role Check"}
+        roleBranch -->|"Role: Member"| step3Catalog["[Step 3] Facility Catalog & Discovery (/)"]
+        roleBranch -->|"Role: Admin"| step9AdminLogin["[Step 9] Admin Workspace Access (/admin)"]
+        step3Catalog --> searchFilter["Filter Sport Types: Badminton, Tennis, Futsal, Gym, Basketball"]
+        searchFilter --> viewDetail["[Click 'Book Facility'] Navigate to Court Detail"]
+    end
 
-    JWT --> RoleCheck{"ตรวจสอบ Role"}
+    subgraph memberFlow ["Lane 2: Member Booking & Lifecycle Management Flow"]
+        viewDetail --> step4Detail["[Step 4] Facility Detail & Interactive Booking (/facilities/id)"]
+        step4Detail --> pickSlot["Select Booking Date + Visual Time-Slot Grid 06:00-22:00"]
+        pickSlot --> priceCalc["Real-Time Price Calculator: Rate x Hours"]
+        priceCalc --> submitBooking["Click 'Confirm Booking' Button"]
+        submitBooking --> condCheck{"Booking Condition Validation Engine"}
+        condCheck -->|"Date in the Past"| condFail1["Condition Error: Past Dates Disallowed"]
+        condCheck -->|"Duration > 2.0 Hours"| condFail2["Condition Error: Maximum Limit Exceeded (0.5 - 2.0h)"]
+        condCheck -->|"Member Booking Conflict"| condFail3["Condition Error: Overlapping Booking on Same Member"]
+        condCheck -->|"Court Double-Booked"| condFail4["Condition Error: Time Slot Already Reserved by Other User"]
+        condFail1 & condFail2 & condFail3 & condFail4 --> bookingRejected["Show Error Notification & Refresh Grid"]
+        bookingRejected --> pickSlot
+        condCheck -->|"All Conditions Passed"| createBookingSuccess["Booking Created (HTTP 201)"]
+        createBookingSuccess --> step5MyBookings["[Step 5] View Own Bookings Screen (/bookings)"]
+        step5MyBookings --> step6EditBooking["[Step 6] Edit Own Booking Modal (BookingEditModal)"]
+        step6EditBooking --> editCondCheck{"Check Reschedule Slot Availability"}
+        editCondCheck -->|"Conflict Detected"| editErr["Error: Selected Slot Unavailable"]
+        editErr --> step6EditBooking
+        editCondCheck -->|"Slot Available"| editSuccess["Update Booking Success (HTTP 200)"]
+        editSuccess --> step5MyBookings
+        step5MyBookings --> step7DeleteBooking["[Step 7] Delete / Cancel Own Booking Modal"]
+        step7DeleteBooking --> confirmDelete{"Confirm Cancellation Dialog"}
+        confirmDelete -->|"Confirm"| deleteSuccess["Booking Deleted Successfully"]
+        deleteSuccess --> step5MyBookings
+        step5MyBookings --> step8Logout["[Step 8] User Log-out Action"]
+        step8Logout --> clearSession["Clear sessionStorage JWT Token"]
+        clearSession --> step2Login
+    end
 
-    RoleCheck -->|"Role: member"| MemberFlow["Member Workspace"]
-    MemberFlow --> CreateBooking["จองสนามกีฬา (เลือกวัน + Visual Time-Slot Grid 0.5-2 ชม. + คำนวณราคาอัตโนมัติ)"]
-    MemberFlow --> MyBookings["รายการจองของฉัน (/bookings)"]
-    MyBookings --> EditOwnBooking["แก้ไขวัน/เวลา/สนาม (ตรวจสอบไม่ให้เวลาชนกัน)"]
-    MyBookings --> DeleteOwnBooking["ยกเลิกการจอง (Delete)"]
-    MyBookings --> BookingPass["ดูบัตรจอง Digital QR Booking Pass & Export CSV"]
+    subgraph adminFlow ["Lane 3: Admin Workspace & Facility Management Flow"]
+        step9AdminLogin --> adminVerify{"Verify Admin Authorization"}
+        adminVerify --> step10AdminBookings["[Step 10] View Any Booking Master Table (/admin?tab=bookings)"]
+        step10AdminBookings --> step11AdminEdit["[Step 11] Admin Update Any Booking Modal"]
+        step11AdminEdit --> adminUpdateSuccess["Admin Override Booking Updated"]
+        adminUpdateSuccess --> step10AdminBookings
+        step10AdminBookings --> step12AdminDelete["[Step 12] Admin Delete Any Booking"]
+        step12AdminDelete --> adminDelSuccess["Booking Removed by Admin"]
+        adminDelSuccess --> step10AdminBookings
+        step9AdminLogin --> step13AdminFacilities["[Step 13] Admin Create / Manage Facility (/admin?tab=facilities)"]
+        step13AdminFacilities --> addFacilityForm["Fill Facility Modal: Name, Sport, Rate, Hours, Image"]
+        addFacilityForm --> valFacility{"Validate Facility Inputs"}
+        valFacility -->|"Valid"| facilityCreated["New Facility Created (Appears in Catalog)"]
+        facilityCreated --> step3Catalog
+        step9AdminLogin --> adminAnalytics["Admin Analytics Dashboard: Total Revenue, Hours, Court Popularity"]
+    end
 
-    RoleCheck -->|"Role: admin"| AdminFlow["Admin Workspace (/admin)"]
-    AdminFlow --> ManageFacilities["จัดการสนามกีฬา (Add / Edit / Soft-Delete Facility)"]
-    AdminFlow --> ManageAllBookings["จัดการการจองของทุกคน (View / Edit / Delete Any Booking)"]
-    AdminFlow --> Analytics["Admin Analytics Dashboard (รายได้รวม, ชั่วโมงการจอง, สนามยอดนิยม)"]
+    subgraph extraCredits ["Lane 4: Extra Credit Features Hub (Step 14)"]
+        direction TB
+        exGrid["[Extra 1] Interactive 30-min Visual Time-Slot Grid (Available, Booked, Mine, Conflict)"]
+        exQR["[Extra 2] Digital QR Booking Pass Modal & Print Receipt"]
+        exCSV["[Extra 3] Export Booking History to CSV File"]
+        exSession["[Extra 4] Multi-Tab Independent Session via sessionStorage"]
+        exAnalytics["[Extra 5] Admin Analytics Dashboard with Live Revenue Metrics"]
+        exLang["[Extra 6] Instant Bilingual UI Toggle (Thai / English)"]
+    end
+
+    step4Detail -.->|"Powered by"| exGrid
+    step5MyBookings -.->|"Open Modal"| exQR
+    step5MyBookings -.->|"Download"| exCSV
+    jwtIssue -.->|"Architecture"| exSession
+    adminAnalytics -.->|"Data Source"| exAnalytics
+    step0 -.->|"Global Feature"| exLang
 ```
 
 ---
