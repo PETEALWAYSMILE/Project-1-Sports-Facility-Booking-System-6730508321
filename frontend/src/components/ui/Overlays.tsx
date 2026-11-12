@@ -44,7 +44,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#181A18]/50 backdrop-blur-[2px] overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -53,22 +53,25 @@ export function Modal({
       }}
     >
       <div
-        className={`bg-white rounded-3xl border border-black/5 shadow-elevated w-full ${maxWidth} overflow-hidden my-auto max-h-[90vh] flex flex-col`}
+        className={`bg-white rounded-xl border border-[#D2CEC3] shadow-elevated w-full ${maxWidth} overflow-hidden my-auto max-h-[90vh] flex flex-col`}
       >
-        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-slate-100 shrink-0">
+        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-[#E2DFD7] shrink-0">
           <div>
-            <h2 id="modal-title" className="text-lg font-semibold text-[#1d1d1f] tracking-tight">
+            <h2
+              id="modal-title"
+              className="text-lg font-semibold text-[#181A18] tracking-tight"
+            >
               {title}
             </h2>
             {subtitle && (
-              <p className="text-xs text-[#86868b] mt-0.5">{subtitle}</p>
+              <p className="text-xs text-[#767B76] mt-0.5">{subtitle}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label={t("ปิดหน้าต่าง", "Close modal")}
-            className="min-w-[36px] min-h-[36px] -mr-1 -mt-1 inline-flex items-center justify-center rounded-full text-slate-400 hover:text-[#1d1d1f] hover:bg-black/5 transition-all"
+            className="min-w-[36px] min-h-[36px] -mr-1 -mt-1 inline-flex items-center justify-center rounded-lg text-[#767B76] hover:text-[#181A18] hover:bg-[#F3F1EC] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -77,7 +80,7 @@ export function Modal({
         <div className="p-6 overflow-y-auto flex-1">{children}</div>
 
         {footer && (
-          <div className="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
+          <div className="px-6 py-4 bg-[#F6F5F0] border-t border-[#E2DFD7] flex items-center justify-end gap-2.5 shrink-0">
             {footer}
           </div>
         )}
@@ -121,7 +124,7 @@ export function Drawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex bg-slate-900/40"
+      className="fixed inset-0 z-50 flex bg-[#181A18]/50"
       role="dialog"
       aria-modal="true"
       aria-label={title}
@@ -132,22 +135,22 @@ export function Drawer({
       <div
         className={
           isBottom
-            ? "mt-auto w-full bg-white rounded-t-2xl border-t border-slate-200 shadow-elevated max-h-[85vh] flex flex-col"
-            : "ml-auto w-full max-w-md bg-white h-full border-l border-slate-200 shadow-elevated flex flex-col"
+            ? "mt-auto w-full bg-white rounded-t-xl border-t border-[#D2CEC3] shadow-elevated max-h-[85vh] flex flex-col"
+            : "ml-auto w-full max-w-md bg-white h-full border-l border-[#D2CEC3] shadow-elevated flex flex-col"
         }
       >
-        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-slate-200 shrink-0">
+        <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-[#E2DFD7] shrink-0">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-[#181A18]">{title}</h2>
             {subtitle && (
-              <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+              <p className="text-xs text-[#767B76] mt-0.5">{subtitle}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label={t("ปิดหน้าต่าง", "Close drawer")}
-            className="min-w-[44px] min-h-[44px] -mr-2 -mt-1 inline-flex items-center justify-center rounded-control text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="min-w-[40px] min-h-[40px] -mr-2 -mt-1 inline-flex items-center justify-center rounded-lg text-[#767B76] hover:text-[#181A18] hover:bg-[#F3F1EC] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -156,7 +159,7 @@ export function Drawer({
         <div className="p-6 overflow-y-auto flex-1">{children}</div>
 
         {footer && (
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5 shrink-0">
+          <div className="px-6 py-4 bg-[#F6F5F0] border-t border-[#E2DFD7] flex items-center justify-end gap-2.5 shrink-0">
             {footer}
           </div>
         )}
@@ -210,16 +213,16 @@ export function ConfirmDialog({
     >
       <div className="space-y-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[#FAF0EE] text-[#992B1E] flex items-center justify-center shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
-          <p className="text-sm text-slate-700 leading-relaxed pt-1">
+          <p className="text-sm text-[#4A4F4B] leading-relaxed pt-1">
             {description}
           </p>
         </div>
 
         {policyNotice && (
-          <div className="p-3.5 rounded-control bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+          <div className="p-3.5 rounded-lg bg-[#FBF6EC] border border-[#E8D7B4] text-xs text-[#7C5819] space-y-1">
             <div className="font-semibold">
               {t("เงื่อนไขการดำเนินการ:", "Cancellation & Action Policy:")}
             </div>
@@ -245,22 +248,22 @@ export function Toast({
   if (!message) return null;
 
   const styles = {
-    success: "bg-emerald-50 border-emerald-300 text-emerald-900",
-    error: "bg-rose-50 border-rose-300 text-rose-900",
-    info: "bg-sky-50 border-sky-300 text-sky-900",
+    success: "bg-[#EBF2EE] border-[#C5D9CE] text-[#143628]",
+    error: "bg-[#FAF0EE] border-[#E8C8C3] text-[#8B2E22]",
+    info: "bg-[#F3F1EC] border-[#D2CEC3] text-[#181A18]",
   };
 
   const icons = {
-    success: <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />,
-    error: <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />,
-    info: <Info className="w-5 h-5 text-sky-600 shrink-0" />,
+    success: <CheckCircle2 className="w-5 h-5 text-[#143628] shrink-0" />,
+    error: <AlertCircle className="w-5 h-5 text-[#992B1E] shrink-0" />,
+    info: <Info className="w-5 h-5 text-[#143628] shrink-0" />,
   };
 
   return (
     <div
       role="status"
       aria-live="polite"
-      className={`fixed bottom-5 right-5 z-50 max-w-md w-[calc(100%-2.5rem)] sm:w-auto flex items-center justify-between gap-3 px-4 py-3 rounded-card border shadow-elevated text-sm font-medium ${styles[type]}`}
+      className={`fixed bottom-5 right-5 z-50 max-w-md w-[calc(100%-2.5rem)] sm:w-auto flex items-center justify-between gap-3 px-4 py-3 rounded-xl border shadow-elevated text-sm font-medium ${styles[type]}`}
     >
       <div className="flex items-center gap-2.5">
         {icons[type]}

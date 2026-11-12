@@ -4,12 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Facility } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
-import {
-  getFacilityPrimaryImage,
-  getSportMeta,
-} from "@/lib/ui-helpers";
+import { getFacilityPrimaryImage, getSportMeta } from "@/lib/ui-helpers";
 import { SportBadge, SportIcon } from "./ui/Primitives";
-import { MapPin, Users, Heart, CheckCircle2, Edit3, Trash2 } from "lucide-react";
+import { MapPin, Users, Heart, Edit3, Trash2 } from "lucide-react";
 
 interface CourtCardProps {
   facility: Facility;
@@ -40,16 +37,16 @@ export default function CourtCard({
     : `/facilities/${facility._id}`;
 
   return (
-    <article className="group bg-white rounded-2xl border border-black/5 shadow-soft hover:shadow-card hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
-      {/* Image Container with fixed aspect ratio to prevent layout shift */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+    <article className="group bg-white rounded-xl border border-[#E2DFD7] hover:border-[#B8B3A6] shadow-soft hover:shadow-card transition-all duration-200 flex flex-col overflow-hidden">
+      {/* Image Container with fixed aspect ratio */}
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#EFECE6]">
         {!imgError && primaryImg ? (
           <img
             src={primaryImg}
             alt={facility.name}
             loading="lazy"
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         ) : (
           <div
@@ -66,11 +63,11 @@ export default function CourtCard({
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           <SportBadge
             sportType={facility.sportType}
-            className="shadow-soft bg-white/95"
+            className="bg-white/95 border-[#D2CEC3] shadow-soft"
           />
         </div>
 
-        {/* Top Right: Favorite Heart Button (min 44x44px touch target) */}
+        {/* Top Right: Favorite Heart Button */}
         {onToggleFavorite && (
           <button
             type="button"
@@ -91,22 +88,24 @@ export default function CourtCard({
                   )
             }
             aria-pressed={isFavorite}
-            className={`absolute top-2 right-2 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-colors duration-150 ${
+            className={`absolute top-2.5 right-2.5 min-w-[40px] min-h-[40px] rounded-lg flex items-center justify-center border transition-colors duration-150 ${
               isFavorite
-                ? "bg-white text-rose-600 shadow-soft"
-                : "bg-white/90 text-slate-600 hover:bg-white hover:text-rose-600 shadow-soft"
+                ? "bg-white border-[#E8C8C3] text-[#992B1E] shadow-soft"
+                : "bg-white/90 border-[#D2CEC3] text-[#4A4F4B] hover:bg-white hover:text-[#992B1E] shadow-soft"
             }`}
           >
             <Heart
-              className={`w-5 h-5 ${isFavorite ? "fill-rose-500 text-rose-500" : ""}`}
+              className={`w-4 h-4 ${
+                isFavorite ? "fill-[#992B1E] text-[#992B1E]" : ""
+              }`}
             />
           </button>
         )}
 
         {/* Bottom Left: Availability Status Pill */}
         <div className="absolute bottom-3 left-3">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white/95 text-emerald-800 border border-emerald-200 shadow-soft">
-            <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/95 text-[#143628] border border-[#D2CEC3] shadow-soft">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#143628] shrink-0" />
             <span>{t("ว่างวันนี้", "Available Today")}</span>
           </span>
         </div>
@@ -114,23 +113,23 @@ export default function CourtCard({
 
       {/* Card Body */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           <Link href={detailHref} className="block focus:outline-none">
-            <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">
+            <h3 className="text-base sm:text-lg font-semibold text-[#181A18] group-hover:text-[#143628] transition-colors line-clamp-1">
               {facility.name}
             </h3>
           </Link>
 
-          <div className="space-y-1.5 text-xs sm:text-sm text-slate-600">
+          <div className="space-y-1.5 text-xs sm:text-sm text-[#4A4F4B]">
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+              <MapPin className="w-4 h-4 text-[#767B76] shrink-0" />
               <span className="line-clamp-1">{facility.location}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-slate-400 shrink-0" />
+              <Users className="w-4 h-4 text-[#767B76] shrink-0" />
               <span>
                 {t("รองรับสูงสุด", "Up to")}{" "}
-                <strong className="font-medium text-slate-800 tabular-price">
+                <strong className="font-semibold text-[#181A18] tabular-price">
                   {facility.capacity}
                 </strong>{" "}
                 {t("คน", "players")}
@@ -140,14 +139,14 @@ export default function CourtCard({
         </div>
 
         {/* Footer: Price & Book CTA */}
-        <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-3">
+        <div className="pt-3.5 border-t border-[#EFECE6] flex items-center justify-between gap-3">
           <div>
-            <span className="text-xs text-slate-500 block">
-              {t("ราคาเริ่มต้น", "Rate")}
+            <span className="text-xs text-[#767B76] block">
+              {t("อัตราค่าบริการ", "Rate")}
             </span>
-            <div className="text-lg font-semibold text-primary tabular-price">
+            <div className="text-lg font-semibold text-[#143628] tabular-price">
               ฿{facility.hourlyRate.toLocaleString()}
-              <span className="text-xs font-normal text-slate-500">
+              <span className="text-xs font-normal text-[#767B76]">
                 {" "}
                 / {t("ชม.", "hr")}
               </span>
@@ -160,16 +159,22 @@ export default function CourtCard({
                 <button
                   type="button"
                   onClick={() => adminActions.onEdit(facility)}
-                  aria-label={t(`แก้ไข ${facility.name}`, `Edit ${facility.name}`)}
-                  className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors active:scale-95"
+                  aria-label={t(
+                    `แก้ไข ${facility.name}`,
+                    `Edit ${facility.name}`
+                  )}
+                  className="min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-lg border border-[#D2CEC3] text-[#4A4F4B] hover:bg-[#F6F5F0] hover:text-[#181A18] transition-colors"
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => adminActions.onDelete(facility)}
-                  aria-label={t(`ลบ ${facility.name}`, `Delete ${facility.name}`)}
-                  className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-full border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors active:scale-95"
+                  aria-label={t(
+                    `ลบ ${facility.name}`,
+                    `Delete ${facility.name}`
+                  )}
+                  className="min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-lg border border-[#D2CEC3] text-[#4A4F4B] hover:bg-[#FAF0EE] hover:text-[#992B1E] hover:border-[#E8C8C3] transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -178,9 +183,9 @@ export default function CourtCard({
 
             <Link
               href={detailHref}
-              className="inline-flex items-center justify-center min-h-[40px] px-5 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#0062c4] text-white text-sm font-medium transition-all shadow-[0_1px_2px_rgba(0,113,227,0.25)] active:scale-95"
+              className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-lg bg-[#143628] hover:bg-[#1B4534] active:bg-[#0E271D] text-white text-sm font-medium transition-colors shadow-soft"
             >
-              {t("จองเลย", "Book Now")}
+              {t("จองสนาม", "Book Court")}
             </Link>
           </div>
         </div>

@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Search, Calendar, MapPin } from "lucide-react";
+import { Search, Calendar, MapPin, LayoutGrid } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { ALL_SPORT_KEYS, SPORT_META_MAP, SportKey } from "@/lib/ui-helpers";
-import { Button } from "./ui/Primitives";
+import { Button, Select, SportIcon } from "./ui/Primitives";
 
 interface SearchBarProps {
   selectedSport: string;
@@ -34,52 +34,51 @@ export default function SearchBar({
     onSearchSubmit?.();
   };
 
+  const sportOptions = [
+    {
+      value: "ALL",
+      label: t("กีฬาทั้งหมด", "All Sports"),
+      icon: <LayoutGrid className="w-4 h-4" />,
+    },
+    ...ALL_SPORT_KEYS.map((key: SportKey) => {
+      const meta = SPORT_META_MAP[key];
+      return {
+        value: key,
+        label: lang === "TH" ? meta.labelTH : meta.labelEN,
+        icon: <SportIcon sportType={key} className="w-4 h-4" />,
+      };
+    }),
+  ];
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white/90 backdrop-blur-xl rounded-2xl border border-black/5 shadow-[0_4px_20px_rgba(0,0,0,0.05)] p-3.5 sm:p-5"
+      className="bg-white rounded-xl border border-[#D2CEC3] shadow-card p-4 sm:p-5"
       role="search"
       aria-label={t("ค้นหาสนามกีฬา", "Search sports facilities")}
     >
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-        {/* 1. Sport Selector */}
-        <div className="md:col-span-3 space-y-1">
-          <label
-            htmlFor="search-sport"
-            className="block text-xs font-medium text-[#1d1d1f] px-1"
-          >
-            {t("ประเภทกีฬา", "Sport")}
-          </label>
-          <select
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
+        {/* 1. Custom Sport Selector Dropdown */}
+        <div className="md:col-span-3">
+          <Select
             id="search-sport"
+            label={t("ประเภทกีฬา", "Sport")}
             value={selectedSport}
-            onChange={(e) => onSportChange(e.target.value)}
-            className="w-full min-h-[44px] px-3.5 py-2 rounded-xl border border-slate-200/90 bg-slate-50/60 hover:bg-white focus:bg-white text-sm font-medium text-[#1d1d1f] transition-all focus:outline-none focus:ring-4 focus:ring-[#0071e3]/15 focus:border-[#0071e3]"
-          >
-            <option value="ALL">
-              {t("กีฬาทั้งหมด", "All Sports")}
-            </option>
-            {ALL_SPORT_KEYS.map((key: SportKey) => {
-              const meta = SPORT_META_MAP[key];
-              return (
-                <option key={key} value={key}>
-                  {lang === "TH" ? meta.labelTH : meta.labelEN}
-                </option>
-              );
-            })}
-          </select>
+            onValueChange={onSportChange}
+            options={sportOptions}
+          />
         </div>
 
         {/* 2. Keyword / Location */}
-        <div className="md:col-span-4 space-y-1">
+        <div className="md:col-span-4 space-y-1.5">
           <label
             htmlFor="search-keyword"
-            className="block text-xs font-medium text-[#1d1d1f] px-1"
+            className="block text-xs sm:text-sm font-medium text-[#181A18]"
           >
             {t("ชื่อสนาม หรือ ทำเลที่ตั้ง", "Court Name or Location")}
           </label>
           <div className="relative">
-            <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <MapPin className="w-4 h-4 text-[#767B76] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="search-keyword"
               type="text"
@@ -89,28 +88,28 @@ export default function SearchBar({
                 "ค้นหาชื่อสนาม, อาคาร หรือโซน...",
                 "Search court name, building, or zone..."
               )}
-              className="w-full min-h-[44px] pl-10 pr-3.5 py-2 rounded-xl border border-slate-200/90 bg-slate-50/60 hover:bg-white focus:bg-white text-sm text-[#1d1d1f] placeholder:text-slate-400 transition-all focus:outline-none focus:ring-4 focus:ring-[#0071e3]/15 focus:border-[#0071e3]"
+              className="w-full min-h-[44px] pl-10 pr-3.5 py-2 rounded-lg border border-[#D2CEC3] hover:border-[#B8B3A6] bg-white text-sm text-[#181A18] placeholder:text-[#8C908C] transition-colors focus:outline-none focus:ring-2 focus:ring-[#143628]/20 focus:border-[#143628]"
             />
           </div>
         </div>
 
         {/* 3. Date Picker */}
-        <div className="md:col-span-3 space-y-1">
+        <div className="md:col-span-3 space-y-1.5">
           <label
             htmlFor="search-date"
-            className="block text-xs font-medium text-[#1d1d1f] px-1"
+            className="block text-xs sm:text-sm font-medium text-[#181A18]"
           >
             {t("วันที่ต้องการเล่น", "Date")}
           </label>
           <div className="relative">
-            <Calendar className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Calendar className="w-4 h-4 text-[#767B76] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               id="search-date"
               type="date"
               min={minDate}
               value={selectedDate}
               onChange={(e) => onDateChange(e.target.value)}
-              className="w-full min-h-[44px] pl-10 pr-3.5 py-2 rounded-xl border border-slate-200/90 bg-slate-50/60 hover:bg-white focus:bg-white text-sm font-medium text-[#1d1d1f] tabular-price transition-all focus:outline-none focus:ring-4 focus:ring-[#0071e3]/15 focus:border-[#0071e3]"
+              className="w-full min-h-[44px] pl-10 pr-3.5 py-2 rounded-lg border border-[#D2CEC3] hover:border-[#B8B3A6] bg-white text-sm font-medium text-[#181A18] tabular-price transition-colors focus:outline-none focus:ring-2 focus:ring-[#143628]/20 focus:border-[#143628]"
             />
           </div>
         </div>

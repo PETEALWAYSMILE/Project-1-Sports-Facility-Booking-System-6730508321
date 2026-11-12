@@ -98,37 +98,39 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <div className="bg-white rounded-3xl border border-black/5 shadow-[0_4px_24px_rgba(0,0,0,0.06)] overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+      <div className="bg-white rounded-xl border border-[#D2CEC3] shadow-card overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
         {/* Left Column: Sport Court Visual & Short Message (Desktop Only) */}
-        <div className="hidden lg:flex lg:col-span-6 relative bg-slate-100 overflow-hidden flex-col justify-between p-8">
+        <div className="hidden lg:flex lg:col-span-6 relative bg-[#143628] overflow-hidden flex-col justify-between p-8">
           <img
             src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80"
             alt={t("สนามกีฬา SportArenaHub", "SportArenaHub Court")}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover opacity-80"
           />
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-[#143628]/55" />
 
           <div className="relative z-10 flex items-center gap-2.5 text-white">
-            <div className="w-8 h-8 rounded-full bg-[#0071e3] flex items-center justify-center shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[#143628] border border-white/25 flex items-center justify-center shadow-soft">
               <Trophy className="w-4 h-4" />
             </div>
-            <span className="font-semibold text-lg tracking-tight">SportArenaHub</span>
+            <span className="font-semibold text-lg tracking-tight">
+              SportArenaHub
+            </span>
           </div>
 
-          <div className="relative z-10 bg-white/85 backdrop-blur-xl rounded-2xl p-6 space-y-3 border border-white/50 shadow-sm">
-            <h2 className="text-xl font-semibold text-[#1d1d1f]">
+          <div className="relative z-10 bg-white/95 rounded-xl p-6 space-y-3 border border-[#D2CEC3] shadow-soft">
+            <h2 className="text-xl font-semibold text-[#181A18]">
               {t(
-                "จองสนามกีฬาพร้อมเล่นได้ทุกวัน",
+                "สำรองเวลาสนามกีฬาได้ทุกวัน",
                 "Book Your Favorite Sports Court Anytime"
               )}
             </h2>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-[#4A4F4B] leading-relaxed">
               {t(
                 "เช็คตารางเวลาว่างแบบเรียลไทม์ เลือกเวลาเล่นได้ตั้งแต่ 30 นาที ถึง 2 ชั่วโมง พร้อมรับรหัสเข้าสนามทันที",
                 "Check real-time availability, select 30-min to 2-hour slots, and get instant court confirmation."
               )}
             </p>
-            <div className="flex items-center gap-4 pt-1 text-xs font-medium text-[#0071e3]">
+            <div className="flex items-center gap-4 pt-1 text-xs font-medium text-[#143628]">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />
                 {t("เช็คคิวว่างเรียลไทม์", "Real-time slots")}
@@ -145,10 +147,10 @@ export default function LoginPage() {
         <div className="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-center">
           <div className="max-w-md w-full mx-auto space-y-6">
             <div className="space-y-1.5">
-              <h1 className="text-2xl font-semibold text-[#1d1d1f]">
+              <h1 className="text-2xl font-semibold text-[#181A18]">
                 {t("เข้าสู่ระบบ", "Log In")}
               </h1>
-              <p className="text-sm text-[#86868b]">
+              <p className="text-sm text-[#767B76]">
                 {t(
                   "เข้าสู่ระบบเพื่อจองสนามและจัดการรายการจองของคุณ",
                   "Sign in to book courts and manage your upcoming sessions."
@@ -159,7 +161,7 @@ export default function LoginPage() {
             {formError && (
               <div
                 role="alert"
-                className="flex items-start gap-2.5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-medium"
+                className="flex items-start gap-2.5 p-3.5 rounded-lg bg-[#FAF0EE] border border-[#E8C8C3] text-[#8B2E22] text-xs sm:text-sm font-medium"
               >
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{formError}</span>
@@ -203,7 +205,7 @@ export default function LoginPage() {
                           ? t("ซ่อนรหัสผ่าน", "Hide password")
                           : t("แสดงรหัสผ่าน", "Show password")
                       }
-                      className="min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700"
+                      className="min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-[#767B76] hover:text-[#181A18]"
                     >
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
@@ -221,7 +223,7 @@ export default function LoginPage() {
                       setResetSent(false);
                       setForgotModalOpen(true);
                     }}
-                    className="text-xs font-medium text-[#0071e3] hover:underline py-1"
+                    className="text-xs font-medium text-[#143628] hover:underline py-1"
                   >
                     {t("ลืมรหัสผ่าน?", "Forgot password?")}
                   </button>
@@ -241,10 +243,10 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* Subtle Quick-Access Account Switcher */}
-            <div className="pt-4 border-t border-slate-100 space-y-2.5">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-[#86868b]">
-                <UserCheck className="w-3.5 h-3.5 text-[#0071e3]" />
+            {/* Quick-Access Account Switcher */}
+            <div className="pt-4 border-t border-[#EFECE6] space-y-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-[#767B76]">
+                <UserCheck className="w-3.5 h-3.5 text-[#143628]" />
                 <span>
                   {t(
                     "เข้าใช้งานด่วนด้วยบัญชีสาธิต:",
@@ -261,7 +263,7 @@ export default function LoginPage() {
                     setEmailError(null);
                     setPasswordError(null);
                   }}
-                  className="min-h-[38px] px-2.5 py-1.5 rounded-full border border-slate-200/90 bg-slate-50/80 hover:bg-[#0071e3]/10 hover:border-[#0071e3] text-xs font-medium text-slate-700 hover:text-[#0071e3] transition-all text-center active:scale-95"
+                  className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#D2CEC3] bg-[#F6F5F0] hover:bg-[#EBF2EE] hover:border-[#143628] text-xs font-medium text-[#181A18] hover:text-[#143628] transition-colors text-center"
                 >
                   {t("สมาชิก 1", "Member 1")}
                 </button>
@@ -273,7 +275,7 @@ export default function LoginPage() {
                     setEmailError(null);
                     setPasswordError(null);
                   }}
-                  className="min-h-[38px] px-2.5 py-1.5 rounded-full border border-slate-200/90 bg-slate-50/80 hover:bg-[#0071e3]/10 hover:border-[#0071e3] text-xs font-medium text-slate-700 hover:text-[#0071e3] transition-all text-center active:scale-95"
+                  className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#D2CEC3] bg-[#F6F5F0] hover:bg-[#EBF2EE] hover:border-[#143628] text-xs font-medium text-[#181A18] hover:text-[#143628] transition-colors text-center"
                 >
                   {t("สมาชิก 2", "Member 2")}
                 </button>
@@ -285,18 +287,18 @@ export default function LoginPage() {
                     setEmailError(null);
                     setPasswordError(null);
                   }}
-                  className="min-h-[38px] px-2.5 py-1.5 rounded-full border border-slate-200/90 bg-slate-50/80 hover:bg-[#0071e3]/10 hover:border-[#0071e3] text-xs font-medium text-slate-700 hover:text-[#0071e3] transition-all text-center active:scale-95"
+                  className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#D2CEC3] bg-[#F6F5F0] hover:bg-[#EBF2EE] hover:border-[#143628] text-xs font-medium text-[#181A18] hover:text-[#143628] transition-colors text-center"
                 >
                   {t("ผู้ดูแลสนาม", "Admin")}
                 </button>
               </div>
             </div>
 
-            <p className="text-center text-sm text-[#86868b] pt-2">
+            <p className="text-center text-sm text-[#767B76] pt-2">
               {t("ยังไม่มีบัญชีสมาชิก?", "Don't have an account?")}{" "}
               <Link
                 href="/register"
-                className="font-semibold text-[#0071e3] hover:underline"
+                className="font-semibold text-[#143628] hover:underline"
               >
                 {t("สมัครสมาชิกใหม่", "Sign Up")}
               </Link>
@@ -344,13 +346,13 @@ export default function LoginPage() {
         }
       >
         {resetSent ? (
-          <div className="p-4 rounded-control bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <div className="p-4 rounded-lg bg-[#EBF2EE] border border-[#C5D9CE] text-[#143628] text-sm flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-[#143628] shrink-0 mt-0.5" />
             <div>
               <div className="font-semibold">
                 {t("ส่งคำขอรีเซ็ตรหัสผ่านแล้ว", "Reset instructions sent")}
               </div>
-              <p className="text-xs text-emerald-800 mt-1">
+              <p className="text-xs text-[#4A4F4B] mt-1">
                 {t(
                   `ระบบได้ส่งคำแนะนำในการตั้งรหัสผ่านใหม่ไปยัง ${resetEmail} เรียบร้อยแล้ว`,
                   `Password recovery instructions have been sent to ${resetEmail}.`

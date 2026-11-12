@@ -43,12 +43,12 @@ import {
   Calendar,
   Clock,
   CheckCircle2,
+  Check,
   AlertCircle,
   Edit3,
   Trash2,
   Heart,
   ShieldCheck,
-  Sparkles,
   QrCode,
   Building2,
   CalendarPlus,
@@ -434,14 +434,14 @@ export default function FacilityDetailPage() {
             type="button"
             onClick={() => toggleFavorite(facility._id)}
             aria-pressed={fav}
-            className={`inline-flex items-center gap-2 min-h-[44px] px-3.5 py-2 rounded-control border text-xs sm:text-sm font-medium transition-colors ${
+            className={`inline-flex items-center gap-2 min-h-[42px] px-3.5 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-colors ${
               fav
-                ? "bg-rose-50 border-rose-200 text-rose-600"
-                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                ? "bg-[#FAF0EE] border-[#E8C8C3] text-[#992B1E]"
+                : "bg-white border-[#D2CEC3] text-[#4A4F4B] hover:bg-[#F6F5F0]"
             }`}
           >
             <Heart
-              className={`w-4 h-4 ${fav ? "fill-rose-500 text-rose-500" : ""}`}
+              className={`w-4 h-4 ${fav ? "fill-[#992B1E] text-[#992B1E]" : ""}`}
             />
             <span>{fav ? t("บันทึกแล้ว", "Saved") : t("บันทึก", "Save")}</span>
           </button>
@@ -543,8 +543,8 @@ export default function FacilityDetailPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <SportBadge sportType={facility.sportType} size="md" showIcon />
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-[#EBF2EE] text-[#143628] border border-[#C5D9CE]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#143628]" />
                   <span>{t("พร้อมให้บริการ", "Open for Booking")}</span>
                 </span>
               </div>
@@ -553,7 +553,7 @@ export default function FacilityDetailPage() {
                 <span className="text-2xl font-semibold text-primary tabular-price">
                   ฿{facility.hourlyRate.toLocaleString()}
                 </span>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-[#767B76]">
                   {" "}
                   / {t("ชั่วโมง", "hour")}
                 </span>
@@ -608,10 +608,10 @@ export default function FacilityDetailPage() {
               {sportMeta.amenities.map((am) => (
                 <div
                   key={am.id}
-                  className="flex items-center gap-3 p-3 rounded-control bg-slate-50/80 border border-slate-200/70 text-sm text-slate-800"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-[#F6F5F0] border border-[#E2DFD7] text-sm text-[#181A18]"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-primary-light text-primary flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-md bg-[#EBF2EE] text-[#143628] flex items-center justify-center shrink-0">
+                    <Check className="w-4 h-4" />
                   </div>
                   <span className="font-medium">
                     {lang === "TH" ? am.labelTH : am.labelEN}
@@ -747,15 +747,15 @@ export default function FacilityDetailPage() {
                         setSelectionError(null);
                         setBookingDate(day.dateStr);
                       }}
-                      className={`min-w-[62px] min-h-[64px] px-2.5 py-2 rounded-control border text-center transition-colors shrink-0 flex flex-col items-center justify-center ${
+                      className={`min-w-[62px] min-h-[64px] px-2.5 py-2 rounded-lg border text-center transition-colors shrink-0 flex flex-col items-center justify-center ${
                         selected
-                          ? "bg-primary text-white border-primary shadow-soft"
-                          : "bg-slate-50/80 hover:bg-white text-slate-700 border-slate-200"
+                          ? "bg-[#143628] text-white border-[#143628] shadow-soft"
+                          : "bg-[#F6F5F0] hover:bg-white text-[#4A4F4B] border-[#D2CEC3]"
                       }`}
                     >
                       <span
                         className={`text-[11px] font-medium ${
-                          selected ? "text-emerald-100" : "text-slate-500"
+                          selected ? "text-[#C5D9CE]" : "text-[#767B76]"
                         }`}
                       >
                         {lang === "TH" ? day.dayNameTH : day.dayNameEN}
@@ -765,7 +765,7 @@ export default function FacilityDetailPage() {
                       </span>
                       <span
                         className={`text-[10px] ${
-                          selected ? "text-emerald-100" : "text-slate-400"
+                          selected ? "text-[#C5D9CE]" : "text-[#767B76]"
                         }`}
                       >
                         {lang === "TH" ? day.monthTH : day.monthEN}
@@ -978,15 +978,15 @@ export default function FacilityDetailPage() {
                     active
                       ? "text-primary font-semibold"
                       : done
-                      ? "text-emerald-700"
-                      : "text-slate-400"
+                      ? "text-[#143628]"
+                      : "text-[#767B76]"
                   }`}
                 >
                   <span
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] shrink-0 tabular-price ${
+                    className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] shrink-0 tabular-price ${
                       active || done
                         ? "bg-primary text-white"
-                        : "bg-slate-100 text-slate-500"
+                        : "bg-[#EFECE6] text-[#767B76]"
                     }`}
                   >
                     {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : item.step}
@@ -1224,7 +1224,7 @@ export default function FacilityDetailPage() {
           {/* STEP 3: Confirmed Success */}
           {checkoutStep === 3 && createdBooking && (
             <div className="text-center space-y-5 py-2">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 text-primary flex items-center justify-center mx-auto">
+              <div className="w-14 h-14 rounded-xl bg-[#EBF2EE] text-[#143628] flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
 

@@ -28,8 +28,10 @@ import {
   EmptyState,
   ErrorState,
   Pagination,
+  Select,
   Skeleton,
   SportBadge,
+  SportIcon,
   StatusPill,
 } from "@/components/ui/Primitives";
 import { ConfirmDialog, Drawer, Toast } from "@/components/ui/Overlays";
@@ -571,11 +573,11 @@ export default function AdminDashboardPage() {
   })).filter((g) => g.courts.length > 0);
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex bg-[#f8fafc] pb-16 md:pb-0">
+    <div className="min-h-[calc(100vh-4rem)] flex bg-[#F6F5F0] pb-16 md:pb-0">
       {/* Desktop Collapsible Left Sidebar */}
       <aside
         aria-label={t("เมนูผู้ดูแลระบบ", "Admin sidebar navigation")}
-        className={`hidden lg:flex flex-col bg-white border-r border-slate-200 transition-all duration-150 shrink-0 ${
+        className={`hidden lg:flex flex-col bg-white border-r border-[#E2DFD7] transition-all duration-150 shrink-0 ${
           sidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
@@ -1173,10 +1175,10 @@ export default function AdminDashboardPage() {
                                     onClick={() =>
                                       setTimelineDrawerBooking(matchingBooking)
                                     }
-                                    className={`p-1.5 border-r border-slate-100 text-left transition-colors ${
+                                    className={`p-1.5 border-r border-[#EFECE6] text-left transition-colors ${
                                       status === "completed"
-                                        ? "bg-sky-50 hover:bg-sky-100 text-sky-900"
-                                        : "bg-emerald-50 hover:bg-emerald-100 text-emerald-900"
+                                        ? "bg-[#EFECE6] hover:bg-[#E2DFD7] text-[#4A4F4B]"
+                                        : "bg-[#EBF2EE] hover:bg-[#DCE9E1] text-[#143628]"
                                     }`}
                                     title={`${formatBookingCode(
                                       matchingBooking._id
@@ -1240,9 +1242,9 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Filter Bar */}
-              <div className="bg-white rounded-card border border-slate-200 p-4 shadow-soft grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+              <div className="bg-white rounded-card border border-[#E2DFD7] p-4 shadow-soft grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
                 <div className="lg:col-span-4 relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="w-4 h-4 text-[#767B76] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={bookingSearch}
@@ -1254,56 +1256,47 @@ export default function AdminDashboardPage() {
                       "ค้นหารหัส SAH-..., ชื่อผู้จอง, สนาม...",
                       "Search booking ref, member, court..."
                     )}
-                    className="w-full min-h-[44px] pl-10 pr-3.5 py-2 rounded-control border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full min-h-[44px] pl-10 pr-3.5 py-2 rounded-control border border-[#D2CEC3] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
                 </div>
 
                 <div className="lg:col-span-2">
-                  <select
+                  <Select
+                    aria-label={t("กรองตามสถานะ", "Filter by status")}
                     value={bookingStatusFilter}
-                    onChange={(e) => {
-                      setBookingStatusFilter(e.target.value);
+                    onValueChange={(val) => {
+                      setBookingStatusFilter(val);
                       setBookingPage(1);
                     }}
-                    aria-label={t("กรองตามสถานะ", "Filter by status")}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-control border border-slate-200 bg-white text-sm"
-                  >
-                    <option value="ALL">
-                      {t("ทุกสถานะ", "All Statuses")}
-                    </option>
-                    <option value="confirmed">
-                      {t("ยืนยันแล้ว", "Confirmed")}
-                    </option>
-                    <option value="completed">
-                      {t("เสร็จสิ้น", "Completed")}
-                    </option>
-                    <option value="cancelled">
-                      {t("ยกเลิก", "Cancelled")}
-                    </option>
-                  </select>
+                    options={[
+                      { value: "ALL", label: t("ทุกสถานะ", "All Statuses") },
+                      { value: "confirmed", label: t("ยืนยันแล้ว", "Confirmed") },
+                      { value: "completed", label: t("เสร็จสิ้น", "Completed") },
+                      { value: "cancelled", label: t("ยกเลิก", "Cancelled") },
+                    ]}
+                  />
                 </div>
 
                 <div className="lg:col-span-2">
-                  <select
+                  <Select
+                    aria-label={t("กรองตามประเภทกีฬา", "Filter by sport")}
                     value={bookingSportFilter}
-                    onChange={(e) => {
-                      setBookingSportFilter(e.target.value);
+                    onValueChange={(val) => {
+                      setBookingSportFilter(val);
                       setBookingPage(1);
                     }}
-                    aria-label={t("กรองตามประเภทกีฬา", "Filter by sport")}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-control border border-slate-200 bg-white text-sm"
-                  >
-                    <option value="ALL">
-                      {t("กีฬาทั้งหมด", "All Sports")}
-                    </option>
-                    {ALL_SPORT_KEYS.map((k: SportKey) => (
-                      <option key={k} value={k}>
-                        {lang === "TH"
-                          ? SPORT_META_MAP[k].labelTH
-                          : SPORT_META_MAP[k].labelEN}
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: "ALL", label: t("กีฬาทั้งหมด", "All Sports") },
+                      ...ALL_SPORT_KEYS.map((k: SportKey) => ({
+                        value: k,
+                        label:
+                          lang === "TH"
+                            ? SPORT_META_MAP[k].labelTH
+                            : SPORT_META_MAP[k].labelEN,
+                        icon: <SportIcon sportType={k} className="w-4 h-4" />,
+                      })),
+                    ]}
+                  />
                 </div>
 
                 <div className="lg:col-span-2">
@@ -1315,31 +1308,34 @@ export default function AdminDashboardPage() {
                       setBookingPage(1);
                     }}
                     aria-label={t("ตั้งแต่วันที่", "From date")}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-control border border-slate-200 bg-white text-sm tabular-price"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-control border border-[#D2CEC3] bg-white text-sm tabular-price focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
                 </div>
 
                 <div className="lg:col-span-2">
-                  <select
+                  <Select
+                    aria-label={t("เรียงลำดับ", "Sort order")}
                     value={bookingSort}
-                    onChange={(e) =>
+                    onValueChange={(val) =>
                       setBookingSort(
-                        e.target.value as "dateDesc" | "dateAsc" | "priceDesc"
+                        val as "dateDesc" | "dateAsc" | "priceDesc"
                       )
                     }
-                    aria-label={t("เรียงลำดับ", "Sort order")}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-control border border-slate-200 bg-white text-sm"
-                  >
-                    <option value="dateDesc">
-                      {t("วันที่: ล่าสุดก่อน", "Date: Newest")}
-                    </option>
-                    <option value="dateAsc">
-                      {t("วันที่: เก่าสุดก่อน", "Date: Oldest")}
-                    </option>
-                    <option value="priceDesc">
-                      {t("ยอดชำระสูงสุด", "Highest Fee")}
-                    </option>
-                  </select>
+                    options={[
+                      {
+                        value: "dateDesc",
+                        label: t("วันที่: ล่าสุดก่อน", "Date: Newest"),
+                      },
+                      {
+                        value: "dateAsc",
+                        label: t("วันที่: เก่าสุดก่อน", "Date: Oldest"),
+                      },
+                      {
+                        value: "priceDesc",
+                        label: t("ยอดชำระสูงสุด", "Highest Fee"),
+                      },
+                    ]}
+                  />
                 </div>
               </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -12,6 +12,8 @@ import {
   RefreshCw,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  Check,
   Dumbbell,
   Trophy,
   Flame,
@@ -48,11 +50,11 @@ export function SportIcon({
   }
 }
 
-// 2. SportBadge
+// 2. SportBadge — Unified Deep Forest & Warm Stone badge
 export function SportBadge({
   sportType,
   size = "sm",
-  showIcon = false,
+  showIcon = true,
   className = "",
 }: {
   sportType?: string;
@@ -69,19 +71,22 @@ export function SportBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium border ${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder} ${sizeClass} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-md font-medium border bg-[#F3F1EC] text-[#143628] border-[#DCD8CE] ${sizeClass} ${className}`}
     >
-      <span
-        className={`w-1.5 h-1.5 rounded-full shrink-0 ${meta.dotColor}`}
-        aria-hidden="true"
-      />
-      {showIcon && <SportIcon sportType={sportType} className="w-3.5 h-3.5" />}
+      {showIcon ? (
+        <SportIcon sportType={sportType} className="w-3.5 h-3.5 text-[#143628] shrink-0" />
+      ) : (
+        <span
+          className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#143628]"
+          aria-hidden="true"
+        />
+      )}
       <span>{label}</span>
     </span>
   );
 }
 
-// 3. StatusPill (color + icon + text, never color alone)
+// 3. StatusPill — Muted editorial tones (color + icon + text)
 export function StatusPill({
   status,
   className = "",
@@ -103,26 +108,26 @@ export function StatusPill({
     pending: {
       labelTH: "รอชำระเงิน",
       labelEN: "Pending Payment",
-      style: "bg-amber-50 text-amber-800 border-amber-200",
-      icon: <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />,
+      style: "bg-[#FBF6EC] text-[#7C5819] border-[#E8D7B4]",
+      icon: <Clock className="w-3.5 h-3.5 text-[#946B22] shrink-0" />,
     },
     confirmed: {
       labelTH: "ยืนยันแล้ว",
       labelEN: "Confirmed",
-      style: "bg-emerald-50 text-emerald-800 border-emerald-200",
-      icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />,
+      style: "bg-[#EBF2EE] text-[#143628] border-[#C5D9CE]",
+      icon: <CheckCircle2 className="w-3.5 h-3.5 text-[#143628] shrink-0" />,
     },
     completed: {
       labelTH: "เสร็จสิ้น",
       labelEN: "Completed",
-      style: "bg-sky-50 text-sky-800 border-sky-200",
-      icon: <CheckCircle2 className="w-3.5 h-3.5 text-sky-600 shrink-0" />,
+      style: "bg-[#EFECE6] text-[#4A4F4B] border-[#DCD8CE]",
+      icon: <CheckCircle2 className="w-3.5 h-3.5 text-[#4A4F4B] shrink-0" />,
     },
     cancelled: {
       labelTH: "ยกเลิก",
       labelEN: "Cancelled",
-      style: "bg-rose-50 text-rose-800 border-rose-200",
-      icon: <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />,
+      style: "bg-[#FAF0EE] text-[#8B2E22] border-[#E8C8C3]",
+      icon: <XCircle className="w-3.5 h-3.5 text-[#A1382B] shrink-0" />,
     },
   };
 
@@ -130,7 +135,7 @@ export function StatusPill({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${item.style} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border ${item.style} ${className}`}
     >
       {item.icon}
       <span>{t(item.labelTH, item.labelEN)}</span>
@@ -159,25 +164,25 @@ export function Button({
 }: ButtonProps) {
   const variantClasses = {
     primary:
-      "bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#0062c4] text-white border border-transparent shadow-[0_1px_2px_rgba(0,113,227,0.2)] active:scale-[0.98]",
+      "bg-[#143628] hover:bg-[#1B4534] active:bg-[#0E271D] text-white border border-transparent shadow-soft",
     secondary:
-      "bg-white/90 hover:bg-white active:bg-slate-100 text-slate-800 border border-slate-300/80 hover:border-slate-400 shadow-sm active:scale-[0.98]",
+      "bg-white hover:bg-[#F6F5F0] active:bg-[#EFECE6] text-[#181A18] border border-[#D2CEC3] hover:border-[#B8B3A6] shadow-soft",
     ghost:
-      "bg-transparent hover:bg-black/5 active:bg-black/10 text-slate-700 border border-transparent active:scale-[0.98]",
+      "bg-transparent hover:bg-[#EFECE6] active:bg-[#E2DFD7] text-[#4A4F4B] hover:text-[#181A18] border border-transparent",
     danger:
-      "bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white border border-transparent shadow-sm active:scale-[0.98]",
+      "bg-[#992B1E] hover:bg-[#822318] active:bg-[#6B1C13] text-white border border-transparent shadow-soft",
   };
 
   const sizeClasses = {
-    sm: "min-h-[40px] px-4 py-1.5 text-xs",
-    md: "min-h-[44px] px-5 py-2 text-sm",
-    lg: "min-h-[48px] px-7 py-2.5 text-base",
+    sm: "min-h-[38px] px-3.5 py-1.5 text-xs",
+    md: "min-h-[44px] px-4 py-2 text-sm",
+    lg: "min-h-[48px] px-6 py-2.5 text-base",
   };
 
   return (
     <button
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-150 disabled:opacity-40 disabled:pointer-events-none select-none tracking-tight ${
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none select-none ${
         variantClasses[variant]
       } ${sizeClasses[size]} ${fullWidth ? "w-full" : ""} ${className}`}
       {...props}
@@ -214,25 +219,25 @@ export function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-slate-800 tracking-tight"
+          className="block text-xs sm:text-sm font-medium text-[#181A18]"
         >
           {label}
         </label>
       )}
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#767B76] pointer-events-none">
             {leftIcon}
           </div>
         )}
         <input
           id={inputId}
-          className={`w-full min-h-[44px] rounded-xl border bg-white text-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-[#0071e3]/15 focus:border-[#0071e3] disabled:bg-slate-100 disabled:text-slate-500 ${
+          className={`w-full min-h-[44px] rounded-lg border bg-white text-sm text-[#181A18] placeholder:text-[#8C908C] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#143628]/20 focus:border-[#143628] disabled:bg-[#F3F1EC] disabled:text-[#767B76] ${
             leftIcon ? "pl-10" : "px-3.5"
           } ${rightElement ? "pr-11" : "pr-3.5"} ${
             error
-              ? "border-rose-400 focus:ring-rose-500/20 focus:border-rose-500"
-              : "border-slate-200/90 hover:border-slate-300"
+              ? "border-[#C24132] focus:ring-[#C24132]/20 focus:border-[#C24132]"
+              : "border-[#D2CEC3] hover:border-[#B8B3A6]"
           } ${className}`}
           {...props}
         />
@@ -243,58 +248,170 @@ export function Input({
         )}
       </div>
       {error ? (
-        <p className="text-xs font-medium text-rose-600" role="alert">
+        <p className="text-xs font-medium text-[#992B1E]" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-xs text-slate-500">{hint}</p>
+        <p className="text-xs text-[#767B76]">{hint}</p>
       ) : null}
     </div>
   );
 }
 
-// 6. Select
-export interface SelectProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement> {
+// 6. Custom Select Dropdown (Replaces native OS <select> bevel button)
+export interface SelectOption {
+  value: string;
+  label: string;
+  icon?: React.ReactNode;
+}
+
+export interface SelectProps {
   label?: string;
   error?: string | null;
-  options: { value: string; label: string }[];
+  options: SelectOption[];
+  value?: string;
+  onChange?: (e: { target: { value: string } }) => void;
+  onValueChange?: (value: string) => void;
+  id?: string;
+  className?: string;
+  disabled?: boolean;
+  "aria-label"?: string;
 }
 
 export function Select({
   label,
   error,
   options,
+  value,
+  onChange,
+  onValueChange,
   id,
   className = "",
-  ...props
+  disabled = false,
+  "aria-label": ariaLabel,
 }: SelectProps) {
   const selectId = id || React.useId();
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption =
+    options.find((opt) => opt.value === value) || options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const handleSelect = (val: string) => {
+    onChange?.({ target: { value: val } });
+    onValueChange?.(val);
+    setOpen(false);
+  };
+
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" ref={containerRef}>
       {label && (
         <label
+          id={`${selectId}-label`}
           htmlFor={selectId}
-          className="block text-sm font-medium text-slate-800 tracking-tight"
+          className="block text-xs sm:text-sm font-medium text-[#181A18]"
         >
           {label}
         </label>
       )}
-      <select
-        id={selectId}
-        className={`w-full min-h-[44px] px-3.5 py-2 rounded-xl border bg-white text-sm text-slate-900 transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-[#0071e3]/15 focus:border-[#0071e3] ${
-          error ? "border-rose-400" : "border-slate-200/90 hover:border-slate-300"
-        } ${className}`}
-        {...props}
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <button
+          id={selectId}
+          type="button"
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-label={ariaLabel || label}
+          onClick={() => setOpen((prev) => !prev)}
+          className={`w-full min-h-[44px] px-3.5 py-2 rounded-lg border bg-white text-left text-sm font-medium text-[#181A18] transition-colors duration-150 flex items-center justify-between gap-2 focus:outline-none focus:ring-2 focus:ring-[#143628]/20 focus:border-[#143628] disabled:bg-[#F3F1EC] disabled:text-[#767B76] ${
+            open
+              ? "border-[#143628] ring-2 ring-[#143628]/15"
+              : error
+              ? "border-[#C24132]"
+              : "border-[#D2CEC3] hover:border-[#B8B3A6]"
+          } ${className}`}
+        >
+          <span className="flex items-center gap-2.5 truncate">
+            {selectedOption?.icon && (
+              <span className="text-[#143628] shrink-0">
+                {selectedOption.icon}
+              </span>
+            )}
+            <span className="truncate">{selectedOption?.label || ""}</span>
+          </span>
+          <ChevronDown
+            className={`w-4 h-4 text-[#767B76] shrink-0 transition-transform duration-150 ${
+              open ? "rotate-180 text-[#143628]" : ""
+            }`}
+          />
+        </button>
+
+        {open && (
+          <ul
+            role="listbox"
+            aria-labelledby={label ? `${selectId}-label` : undefined}
+            className="absolute left-0 right-0 mt-1.5 max-h-64 overflow-y-auto rounded-lg border border-[#D2CEC3] bg-white py-1.5 shadow-elevated z-50"
+          >
+            {options.map((opt) => {
+              const isSelected = opt.value === selectedOption?.value;
+              return (
+                <li key={opt.value} role="option" aria-selected={isSelected}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(opt.value)}
+                    className={`w-full px-3.5 py-2.5 text-left text-sm flex items-center justify-between gap-2 transition-colors ${
+                      isSelected
+                        ? "bg-[#EBF2EE] text-[#143628] font-semibold"
+                        : "text-[#181A18] hover:bg-[#F6F5F0]"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5 truncate">
+                      {opt.icon && (
+                        <span
+                          className={`shrink-0 ${
+                            isSelected ? "text-[#143628]" : "text-[#767B76]"
+                          }`}
+                        >
+                          {opt.icon}
+                        </span>
+                      )}
+                      <span className="truncate">{opt.label}</span>
+                    </span>
+                    {isSelected && (
+                      <Check className="w-4 h-4 text-[#143628] shrink-0" />
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
       {error && (
-        <p className="text-xs font-medium text-rose-600" role="alert">
+        <p className="text-xs font-medium text-[#992B1E]" role="alert">
           {error}
         </p>
       )}
@@ -322,7 +439,7 @@ export function DatePicker({
       {label && (
         <label
           htmlFor={dateId}
-          className="block text-sm font-medium text-slate-800 tracking-tight"
+          className="block text-xs sm:text-sm font-medium text-[#181A18]"
         >
           {label}
         </label>
@@ -330,13 +447,15 @@ export function DatePicker({
       <input
         id={dateId}
         type="date"
-        className={`w-full min-h-[44px] px-3.5 py-2 rounded-xl border bg-white text-sm text-slate-900 tabular-price transition-all duration-150 focus:outline-none focus:ring-4 focus:ring-[#0071e3]/15 focus:border-[#0071e3] ${
-          error ? "border-rose-400" : "border-slate-200/90 hover:border-slate-300"
+        className={`w-full min-h-[44px] px-3.5 py-2 rounded-lg border bg-white text-sm text-[#181A18] tabular-price transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#143628]/20 focus:border-[#143628] ${
+          error
+            ? "border-[#C24132]"
+            : "border-[#D2CEC3] hover:border-[#B8B3A6]"
         } ${className}`}
         {...props}
       />
       {error && (
-        <p className="text-xs font-medium text-rose-600" role="alert">
+        <p className="text-xs font-medium text-[#992B1E]" role="alert">
           {error}
         </p>
       )}
@@ -344,11 +463,11 @@ export function DatePicker({
   );
 }
 
-// 8. Skeleton & CardSkeleton (No full-screen spinner)
+// 8. Skeleton & CardSkeleton
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-lg bg-slate-200/80 ${className}`}
+      className={`animate-pulse rounded-md bg-[#E6E3DC] ${className}`}
       aria-hidden="true"
     />
   );
@@ -356,19 +475,19 @@ export function Skeleton({ className = "" }: { className?: string }) {
 
 export function CourtCardSkeleton() {
   return (
-    <div className="bg-white rounded-card border border-slate-200 overflow-hidden shadow-soft">
-      <div className="aspect-[16/10] w-full bg-slate-200/80 animate-pulse" />
+    <div className="bg-white rounded-xl border border-[#E2DFD7] overflow-hidden shadow-soft">
+      <div className="aspect-[16/10] w-full bg-[#E6E3DC] animate-pulse" />
       <div className="p-4 space-y-3">
         <div className="flex justify-between items-center">
-          <Skeleton className="h-5 w-20 rounded-full" />
+          <Skeleton className="h-5 w-20 rounded-md" />
           <Skeleton className="h-5 w-24" />
         </div>
         <Skeleton className="h-6 w-3/4" />
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-4 w-1/2" />
-        <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+        <div className="pt-2 flex items-center justify-between border-t border-[#EFECE6]">
           <Skeleton className="h-6 w-24" />
-          <Skeleton className="h-11 w-28 rounded-control" />
+          <Skeleton className="h-10 w-28 rounded-lg" />
         </div>
       </div>
     </div>
@@ -392,15 +511,15 @@ export function EmptyState({
   actionHref?: string;
 }) {
   return (
-    <div className="bg-white rounded-card border border-slate-200 p-8 sm:p-12 text-center max-w-lg mx-auto my-4 shadow-soft">
-      <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-4">
+    <div className="bg-white rounded-xl border border-[#E2DFD7] p-8 sm:p-12 text-center max-w-lg mx-auto my-4 shadow-soft">
+      <div className="w-12 h-12 rounded-lg bg-[#EFECE6] text-[#143628] flex items-center justify-center mx-auto mb-4">
         {icon || <Trophy className="w-6 h-6" />}
       </div>
-      <h3 className="text-base sm:text-lg font-semibold text-slate-900">
+      <h3 className="text-base sm:text-lg font-semibold text-[#181A18]">
         {title}
       </h3>
       {description && (
-        <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
+        <p className="text-sm text-[#767B76] mt-1.5 leading-relaxed">
           {description}
         </p>
       )}
@@ -409,7 +528,7 @@ export function EmptyState({
           {actionHref ? (
             <Link
               href={actionHref}
-              className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 rounded-control bg-primary hover:bg-primary-hover text-white text-sm font-medium transition-colors"
+              className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 rounded-lg bg-[#143628] hover:bg-[#1B4534] text-white text-sm font-medium transition-colors"
             >
               {actionLabel}
             </Link>
@@ -437,16 +556,16 @@ export function ErrorState({
   const { t } = useLanguage();
   return (
     <div
-      className="bg-white rounded-card border border-rose-200 p-6 sm:p-8 text-center max-w-lg mx-auto my-4 shadow-soft"
+      className="bg-white rounded-xl border border-[#E8C8C3] p-6 sm:p-8 text-center max-w-lg mx-auto my-4 shadow-soft"
       role="alert"
     >
-      <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+      <div className="w-12 h-12 rounded-lg bg-[#FAF0EE] text-[#992B1E] flex items-center justify-center mx-auto mb-3">
         <AlertTriangle className="w-6 h-6" />
       </div>
-      <h3 className="text-base font-semibold text-slate-900">
+      <h3 className="text-base font-semibold text-[#181A18]">
         {title || t("เกิดข้อผิดพลาดในการโหลดข้อมูล", "Unable to load data")}
       </h3>
-      <p className="text-sm text-slate-600 mt-1">{message}</p>
+      <p className="text-sm text-[#4A4F4B] mt-1">{message}</p>
       {onRetry && (
         <div className="mt-4">
           <Button variant="secondary" onClick={onRetry}>
@@ -466,7 +585,10 @@ export function Breadcrumb({
   items: { label: string; href?: string }[];
 }) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center text-xs sm:text-sm text-slate-500">
+    <nav
+      aria-label="Breadcrumb"
+      className="flex items-center text-xs sm:text-sm text-[#767B76]"
+    >
       <ol className="flex items-center flex-wrap gap-1.5">
         {items.map((item, idx) => {
           const isLast = idx === items.length - 1;
@@ -474,14 +596,14 @@ export function Breadcrumb({
             <li key={idx} className="inline-flex items-center gap-1.5">
               {idx > 0 && (
                 <ChevronRight
-                  className="w-3.5 h-3.5 text-slate-400 shrink-0"
+                  className="w-3.5 h-3.5 text-[#767B76] shrink-0"
                   aria-hidden="true"
                 />
               )}
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="hover:text-primary transition-colors font-medium"
+                  className="hover:text-[#143628] transition-colors font-medium"
                 >
                   {item.label}
                 </Link>
@@ -489,7 +611,7 @@ export function Breadcrumb({
                 <span
                   className={
                     isLast
-                      ? "font-medium text-slate-900 truncate max-w-[220px] sm:max-w-xs"
+                      ? "font-medium text-[#181A18] truncate max-w-[220px] sm:max-w-xs"
                       : ""
                   }
                   aria-current={isLast ? "page" : undefined}
@@ -520,7 +642,7 @@ export function Tabs<T extends string>({
   return (
     <div
       role="tablist"
-      className={`flex items-center gap-1 border-b border-slate-200 overflow-x-auto no-scrollbar ${className}`}
+      className={`flex items-center gap-1 border-b border-[#E2DFD7] overflow-x-auto no-scrollbar ${className}`}
     >
       {tabs.map((tab) => {
         const active = tab.id === activeTab;
@@ -533,18 +655,18 @@ export function Tabs<T extends string>({
             onClick={() => onChange(tab.id)}
             className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               active
-                ? "border-primary text-primary"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                ? "border-[#143628] text-[#143628] font-semibold"
+                : "border-transparent text-[#4A4F4B] hover:text-[#181A18] hover:border-[#D2CEC3]"
             }`}
           >
             {tab.icon}
             <span>{tab.label}</span>
             {typeof tab.count === "number" && (
               <span
-                className={`px-2 py-0.5 rounded-full text-xs tabular-price ${
+                className={`px-2 py-0.5 rounded-md text-xs tabular-price ${
                   active
-                    ? "bg-primary-light text-primary font-semibold"
-                    : "bg-slate-100 text-slate-600"
+                    ? "bg-[#EBF2EE] text-[#143628] font-semibold"
+                    : "bg-[#EFECE6] text-[#4A4F4B]"
                 }`}
               >
                 {tab.count}
@@ -575,7 +697,7 @@ export function Pagination({
   return (
     <nav
       aria-label="Pagination"
-      className="flex items-center justify-between gap-2 pt-4 border-t border-slate-200"
+      className="flex items-center justify-between gap-2 pt-4 border-t border-[#E2DFD7]"
     >
       <Button
         variant="secondary"
@@ -594,10 +716,10 @@ export function Pagination({
             type="button"
             onClick={() => onPageChange(page)}
             aria-current={page === currentPage ? "page" : undefined}
-            className={`min-w-[44px] min-h-[44px] rounded-control text-sm font-medium tabular-price transition-colors ${
+            className={`min-w-[40px] min-h-[40px] rounded-lg text-sm font-medium tabular-price transition-colors ${
               page === currentPage
-                ? "bg-primary text-white"
-                : "text-slate-700 hover:bg-slate-100"
+                ? "bg-[#143628] text-white"
+                : "text-[#4A4F4B] hover:bg-[#EFECE6]"
             }`}
           >
             {page}

@@ -32,7 +32,9 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
-  const [accountModalTab, setAccountModalTab] = useState<"profile" | "favorites">("profile");
+  const [accountModalTab, setAccountModalTab] = useState<
+    "profile" | "favorites"
+  >("profile");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +51,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Listen to custom event so other pages (e.g., Bookings page) can open Profile/Favorites modal
   useEffect(() => {
     const handleOpenModal = (e: Event) => {
       const customEvent = e as CustomEvent<"profile" | "favorites">;
@@ -80,19 +81,19 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-black/5 supports-[backdrop-filter]:bg-white/75 transition-all">
+      <header className="sticky top-0 z-40 bg-[#F6F5F0]/95 backdrop-blur-md border-b border-[#E2DFD7]">
         <div className="max-w-container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          {/* Left: Brand Logo */}
+          {/* Left: Brand Logo — Monolith Clubhouse Emblem */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 group focus:outline-none rounded-full"
+            className="flex items-center gap-2.5 group focus:outline-none rounded-lg"
           >
-            <div className="w-8 h-8 rounded-full bg-[#0071e3] flex items-center justify-center text-white shadow-sm transition-transform duration-200 group-hover:scale-105">
+            <div className="w-8 h-8 rounded-lg bg-[#143628] flex items-center justify-center text-white shadow-soft">
               <Trophy className="w-4 h-4" />
             </div>
             <div className="leading-tight">
-              <span className="font-semibold text-lg tracking-tight text-[#1d1d1f]">
-                SportArena<span className="text-[#0071e3]">Hub</span>
+              <span className="font-semibold text-base sm:text-lg tracking-tight text-[#181A18]">
+                SportArenaHub
               </span>
             </div>
           </Link>
@@ -100,14 +101,14 @@ export default function Navbar() {
           {/* Center: Desktop Navigation */}
           <nav
             aria-label={t("เมนูหลัก", "Main navigation")}
-            className="hidden md:flex items-center gap-1.5"
+            className="hidden md:flex items-center gap-1"
           >
             <Link
               href="/"
-              className={`inline-flex items-center gap-2 min-h-[38px] px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+              className={`inline-flex items-center gap-2 min-h-[38px] px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive("/") && !pathname?.startsWith("/facilities")
-                  ? "text-[#0071e3] bg-[#0071e3]/10 font-semibold"
-                  : "text-slate-600 hover:bg-black/5 hover:text-[#1d1d1f]"
+                  ? "text-[#143628] bg-[#EBF2EE] font-semibold"
+                  : "text-[#4A4F4B] hover:bg-[#EFECE6] hover:text-[#181A18]"
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -116,10 +117,10 @@ export default function Navbar() {
 
             <Link
               href={user ? "/bookings" : "/login"}
-              className={`inline-flex items-center gap-2 min-h-[38px] px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+              className={`inline-flex items-center gap-2 min-h-[38px] px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive("/bookings")
-                  ? "text-[#0071e3] bg-[#0071e3]/10 font-semibold"
-                  : "text-slate-600 hover:bg-black/5 hover:text-[#1d1d1f]"
+                  ? "text-[#143628] bg-[#EBF2EE] font-semibold"
+                  : "text-[#4A4F4B] hover:bg-[#EFECE6] hover:text-[#181A18]"
               }`}
             >
               <CalendarCheck className="w-4 h-4" />
@@ -129,10 +130,10 @@ export default function Navbar() {
             {user?.role === "admin" && (
               <Link
                 href="/admin"
-                className={`inline-flex items-center gap-2 min-h-[38px] px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                className={`inline-flex items-center gap-2 min-h-[38px] px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive("/admin")
-                    ? "text-[#0071e3] bg-[#0071e3]/10 font-semibold"
-                    : "text-slate-600 hover:bg-black/5 hover:text-[#1d1d1f]"
+                    ? "text-[#143628] bg-[#EBF2EE] font-semibold"
+                    : "text-[#4A4F4B] hover:bg-[#EFECE6] hover:text-[#181A18]"
                 }`}
               >
                 <ShieldCheck className="w-4 h-4" />
@@ -148,11 +149,11 @@ export default function Navbar() {
               type="button"
               onClick={() => openAccountSection("favorites")}
               aria-label={t("รายการโปรด", "Saved Courts")}
-              className="relative min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-full text-slate-600 hover:bg-black/5 hover:text-[#1d1d1f] transition-colors"
+              className="relative min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-lg text-[#4A4F4B] hover:bg-[#EFECE6] hover:text-[#181A18] transition-colors"
             >
               <Heart className="w-4 h-4" />
               {favoriteIds.length > 0 && (
-                <span className="absolute top-1 right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-[#0071e3] text-white text-[10px] font-semibold flex items-center justify-center tabular-price">
+                <span className="absolute top-1 right-1 min-w-[16px] h-[16px] px-1 rounded-md bg-[#143628] text-white text-[10px] font-semibold flex items-center justify-center tabular-price">
                   {favoriteIds.length}
                 </span>
               )}
@@ -162,10 +163,13 @@ export default function Navbar() {
             <button
               type="button"
               onClick={toggleLang}
-              aria-label={t("สลับภาษา ไทย / อังกฤษ", "Switch language TH / EN")}
-              className="inline-flex items-center gap-1.5 min-h-[36px] px-3 py-1 rounded-full border border-slate-300/80 bg-white/70 hover:bg-white text-xs font-medium text-slate-700 hover:text-slate-900 transition-all active:scale-95 shadow-sm"
+              aria-label={t(
+                "สลับภาษา ไทย / อังกฤษ",
+                "Switch language TH / EN"
+              )}
+              className="inline-flex items-center gap-1.5 min-h-[36px] px-3 py-1 rounded-lg border border-[#D2CEC3] bg-white hover:bg-[#F3F1EC] text-xs font-medium text-[#181A18] transition-colors shadow-soft"
             >
-              <Globe className="w-3.5 h-3.5 text-[#0071e3] shrink-0" />
+              <Globe className="w-3.5 h-3.5 text-[#143628] shrink-0" />
               <span>{lang === "TH" ? "TH" : "EN"}</span>
             </button>
 
@@ -177,30 +181,30 @@ export default function Navbar() {
                   aria-expanded={dropdownOpen}
                   aria-haspopup="menu"
                   aria-label={t("เมนูบัญชีผู้ใช้", "User account menu")}
-                  className="inline-flex items-center gap-2 min-h-[38px] pl-2 pr-3 py-1 rounded-full border border-slate-300/80 bg-white/80 hover:bg-white transition-all shadow-sm active:scale-95"
+                  className="inline-flex items-center gap-2 min-h-[38px] pl-2 pr-2.5 py-1 rounded-lg border border-[#D2CEC3] bg-white hover:bg-[#F3F1EC] transition-colors shadow-soft"
                 >
-                  <div className="w-6 h-6 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center font-semibold text-xs">
+                  <div className="w-6 h-6 rounded-md bg-[#143628] text-white flex items-center justify-center font-semibold text-xs">
                     {user.name?.charAt(0).toUpperCase() || "U"}
                   </div>
-                  <span className="hidden sm:inline-block text-xs font-medium text-slate-800 max-w-[120px] truncate">
+                  <span className="hidden sm:inline-block text-xs font-medium text-[#181A18] max-w-[120px] truncate">
                     {user.name}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[#767B76]" />
                 </button>
 
                 {dropdownOpen && (
                   <div
                     role="menu"
-                    className="absolute right-0 mt-2 w-60 bg-white/95 backdrop-blur-xl rounded-2xl border border-black/5 shadow-elevated py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+                    className="absolute right-0 mt-2 w-60 bg-white rounded-xl border border-[#D2CEC3] shadow-elevated py-1.5 z-50"
                   >
-                    <div className="px-4 py-2.5 border-b border-slate-100">
-                      <p className="text-sm font-semibold text-[#1d1d1f] truncate">
+                    <div className="px-4 py-2.5 border-b border-[#EFECE6]">
+                      <p className="text-sm font-semibold text-[#181A18] truncate">
                         {user.name}
                       </p>
-                      <p className="text-xs text-[#86868b] truncate">
+                      <p className="text-xs text-[#767B76] truncate">
                         {user.email}
                       </p>
-                      <span className="mt-1.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#0071e3]/10 text-[#0071e3]">
+                      <span className="mt-1.5 inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#EBF2EE] text-[#143628]">
                         {user.role === "admin"
                           ? t("ผู้ดูแลระบบ", "Administrator")
                           : t("สมาชิก", "Member")}
@@ -211,9 +215,9 @@ export default function Navbar() {
                       type="button"
                       role="menuitem"
                       onClick={() => openAccountSection("profile")}
-                      className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                      className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-[#181A18] hover:bg-[#F6F5F0] flex items-center gap-2.5"
                     >
-                      <UserIcon className="w-4 h-4 text-slate-400" />
+                      <UserIcon className="w-4 h-4 text-[#767B76]" />
                       <span>{t("โปรไฟล์", "Profile")}</span>
                     </button>
 
@@ -221,9 +225,9 @@ export default function Navbar() {
                       href="/bookings"
                       role="menuitem"
                       onClick={() => setDropdownOpen(false)}
-                      className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                      className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-[#181A18] hover:bg-[#F6F5F0] flex items-center gap-2.5"
                     >
-                      <CalendarCheck className="w-4 h-4 text-slate-400" />
+                      <CalendarCheck className="w-4 h-4 text-[#767B76]" />
                       <span>{t("การจองของฉัน", "My Bookings")}</span>
                     </Link>
 
@@ -231,14 +235,14 @@ export default function Navbar() {
                       type="button"
                       role="menuitem"
                       onClick={() => openAccountSection("favorites")}
-                      className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center justify-between"
+                      className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-[#181A18] hover:bg-[#F6F5F0] flex items-center justify-between"
                     >
                       <span className="flex items-center gap-2.5">
-                        <Heart className="w-4 h-4 text-slate-400" />
+                        <Heart className="w-4 h-4 text-[#767B76]" />
                         <span>{t("รายการโปรด", "Saved Courts")}</span>
                       </span>
                       {favoriteIds.length > 0 && (
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700 tabular-price">
+                        <span className="px-2 py-0.5 rounded-md text-xs bg-[#EFECE6] text-[#181A18] tabular-price">
                           {favoriteIds.length}
                         </span>
                       )}
@@ -249,19 +253,21 @@ export default function Navbar() {
                         href="/admin"
                         role="menuitem"
                         onClick={() => setDropdownOpen(false)}
-                        className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                        className="w-full min-h-[40px] px-4 py-2 text-left text-sm text-[#181A18] hover:bg-[#F6F5F0] flex items-center gap-2.5"
                       >
-                        <ShieldCheck className="w-4 h-4 text-[#0071e3]" />
-                        <span>{t("แดชบอร์ดผู้ดูแลระบบ", "Admin Panel")}</span>
+                        <ShieldCheck className="w-4 h-4 text-[#143628]" />
+                        <span>
+                          {t("แดชบอร์ดผู้ดูแลระบบ", "Admin Panel")}
+                        </span>
                       </Link>
                     )}
 
-                    <div className="border-t border-slate-100 mt-1 pt-1">
+                    <div className="border-t border-[#EFECE6] mt-1 pt-1">
                       <button
                         type="button"
                         role="menuitem"
                         onClick={handleLogout}
-                        className="w-full min-h-[40px] px-4 py-2 text-left text-sm font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2.5"
+                        className="w-full min-h-[40px] px-4 py-2 text-left text-sm font-medium text-[#992B1E] hover:bg-[#FAF0EE] flex items-center gap-2.5"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>{t("ออกจากระบบ", "Log Out")}</span>
@@ -271,16 +277,16 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-2.5">
+              <div className="hidden sm:flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center min-h-[38px] px-5 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#0062c4] text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,113,227,0.3)] transition-all active:scale-95 tracking-tight"
+                  className="inline-flex items-center justify-center min-h-[38px] px-4 py-1.5 rounded-lg bg-[#143628] hover:bg-[#1B4534] active:bg-[#0E271D] text-sm font-medium text-white shadow-soft transition-colors"
                 >
                   {t("เข้าสู่ระบบ", "Log In")}
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center min-h-[38px] px-4 py-1.5 rounded-full border border-slate-300 hover:border-slate-400 bg-white/80 hover:bg-white text-sm font-medium text-slate-800 transition-all active:scale-95 shadow-sm tracking-tight"
+                  className="inline-flex items-center justify-center min-h-[38px] px-4 py-1.5 rounded-lg border border-[#D2CEC3] hover:border-[#B8B3A6] bg-white hover:bg-[#F3F1EC] text-sm font-medium text-[#181A18] transition-colors shadow-soft"
                 >
                   {t("ลงทะเบียน", "Sign Up")}
                 </Link>
@@ -293,7 +299,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen((v) => !v)}
               aria-label={t("เปิดเมนู", "Toggle navigation menu")}
               aria-expanded={mobileMenuOpen}
-              className="md:hidden min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-full text-slate-700 hover:bg-black/5"
+              className="md:hidden min-w-[38px] min-h-[38px] inline-flex items-center justify-center rounded-lg text-[#181A18] hover:bg-[#EFECE6]"
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5" />
@@ -306,14 +312,14 @@ export default function Navbar() {
 
         {/* Mobile Drawer / Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-black/5 bg-white/95 backdrop-blur-xl px-4 py-3 space-y-2">
+          <div className="md:hidden border-t border-[#E2DFD7] bg-white px-4 py-3 space-y-1.5">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-2.5 min-h-[44px] px-3 py-2 rounded-control text-sm font-medium ${
+              className={`flex items-center gap-2.5 min-h-[44px] px-3 py-2 rounded-lg text-sm font-medium ${
                 isActive("/")
-                  ? "bg-primary-light text-primary"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-[#EBF2EE] text-[#143628] font-semibold"
+                  : "text-[#4A4F4B] hover:bg-[#F6F5F0]"
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -323,10 +329,10 @@ export default function Navbar() {
             <Link
               href={user ? "/bookings" : "/login"}
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-2.5 min-h-[44px] px-3 py-2 rounded-control text-sm font-medium ${
+              className={`flex items-center gap-2.5 min-h-[44px] px-3 py-2 rounded-lg text-sm font-medium ${
                 isActive("/bookings")
-                  ? "bg-primary-light text-primary"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-[#EBF2EE] text-[#143628] font-semibold"
+                  : "text-[#4A4F4B] hover:bg-[#F6F5F0]"
               }`}
             >
               <CalendarCheck className="w-4 h-4" />
@@ -336,14 +342,14 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => openAccountSection("favorites")}
-              className="w-full flex items-center justify-between min-h-[44px] px-3 py-2 rounded-control text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="w-full flex items-center justify-between min-h-[44px] px-3 py-2 rounded-lg text-sm font-medium text-[#4A4F4B] hover:bg-[#F6F5F0]"
             >
               <span className="flex items-center gap-2.5">
                 <Heart className="w-4 h-4" />
                 <span>{t("รายการโปรด", "Saved Courts")}</span>
               </span>
               {favoriteIds.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs bg-primary-light text-primary tabular-price">
+                <span className="px-2 py-0.5 rounded-md text-xs bg-[#EBF2EE] text-[#143628] tabular-price">
                   {favoriteIds.length}
                 </span>
               )}
@@ -353,10 +359,10 @@ export default function Navbar() {
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-2.5 min-h-[44px] px-3 py-2 rounded-control text-sm font-medium ${
+                className={`flex items-center gap-2.5 min-h-[44px] px-3 py-2 rounded-lg text-sm font-medium ${
                   isActive("/admin")
-                    ? "bg-primary-light text-primary"
-                    : "text-slate-700 hover:bg-slate-50"
+                    ? "bg-[#EBF2EE] text-[#143628] font-semibold"
+                    : "text-[#4A4F4B] hover:bg-[#F6F5F0]"
                 }`}
               >
                 <ShieldCheck className="w-4 h-4" />
@@ -365,18 +371,18 @@ export default function Navbar() {
             )}
 
             {!user && (
-              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[#EFECE6]">
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="inline-flex items-center justify-center min-h-[42px] px-4 py-2 rounded-full bg-[#0071e3] text-sm font-medium text-white shadow-sm active:scale-95 transition-all"
+                  className="inline-flex items-center justify-center min-h-[42px] px-4 py-2 rounded-lg bg-[#143628] text-sm font-medium text-white shadow-soft"
                 >
                   {t("เข้าสู่ระบบ", "Log In")}
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="inline-flex items-center justify-center min-h-[42px] px-4 py-2 rounded-full border border-slate-300 bg-white text-sm font-medium text-slate-800 shadow-sm active:scale-95 transition-all"
+                  className="inline-flex items-center justify-center min-h-[42px] px-4 py-2 rounded-lg border border-[#D2CEC3] bg-white text-sm font-medium text-[#181A18] shadow-soft"
                 >
                   {t("ลงทะเบียน", "Sign Up")}
                 </Link>
@@ -389,14 +395,14 @@ export default function Navbar() {
       {/* Mobile Bottom Tab Bar */}
       <nav
         aria-label={t("แถบเมนูด้านล่างบนมือถือ", "Mobile bottom navigation")}
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/80 backdrop-blur-xl border-t border-black/5 px-2 py-1 flex items-center justify-around supports-[backdrop-filter]:bg-white/75"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-[#E2DFD7] px-2 py-1 flex items-center justify-around"
       >
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
+          className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-lg text-[11px] font-medium transition-colors ${
             isActive("/") && !pathname?.startsWith("/facilities")
-              ? "text-[#0071e3]"
-              : "text-slate-500 hover:text-[#1d1d1f]"
+              ? "text-[#143628] font-semibold"
+              : "text-[#767B76] hover:text-[#181A18]"
           }`}
         >
           <Building2 className="w-5 h-5 mb-0.5" />
@@ -405,10 +411,10 @@ export default function Navbar() {
 
         <Link
           href={user ? "/bookings" : "/login"}
-          className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
+          className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-lg text-[11px] font-medium transition-colors ${
             isActive("/bookings")
-              ? "text-[#0071e3]"
-              : "text-slate-500 hover:text-[#1d1d1f]"
+              ? "text-[#143628] font-semibold"
+              : "text-[#767B76] hover:text-[#181A18]"
           }`}
         >
           <CalendarCheck className="w-5 h-5 mb-0.5" />
@@ -418,7 +424,7 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => openAccountSection("favorites")}
-          className="flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-full text-[11px] font-medium text-slate-500 hover:text-[#1d1d1f]"
+          className="flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-lg text-[11px] font-medium text-[#767B76] hover:text-[#181A18]"
         >
           <Heart className="w-5 h-5 mb-0.5" />
           <span>{t("รายการโปรด", "Saved")}</span>
@@ -427,10 +433,10 @@ export default function Navbar() {
         {user?.role === "admin" ? (
           <Link
             href="/admin"
-            className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
+            className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-lg text-[11px] font-medium transition-colors ${
               isActive("/admin")
-                ? "text-[#0071e3]"
-                : "text-slate-500 hover:text-[#1d1d1f]"
+                ? "text-[#143628] font-semibold"
+                : "text-[#767B76] hover:text-[#181A18]"
             }`}
           >
             <ShieldCheck className="w-5 h-5 mb-0.5" />
@@ -442,14 +448,16 @@ export default function Navbar() {
             onClick={() =>
               user ? openAccountSection("profile") : router.push("/login")
             }
-            className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
+            className={`flex flex-col items-center justify-center min-h-[48px] px-3 py-1 rounded-lg text-[11px] font-medium transition-colors ${
               isActive("/login") || isActive("/register")
-                ? "text-[#0071e3]"
-                : "text-slate-500 hover:text-[#1d1d1f]"
+                ? "text-[#143628] font-semibold"
+                : "text-[#767B76] hover:text-[#181A18]"
             }`}
           >
             <UserIcon className="w-5 h-5 mb-0.5" />
-            <span>{user ? t("โปรไฟล์", "Profile") : t("เข้าสู่ระบบ", "Log In")}</span>
+            <span>
+              {user ? t("โปรไฟล์", "Profile") : t("เข้าสู่ระบบ", "Log In")}
+            </span>
           </button>
         )}
       </nav>

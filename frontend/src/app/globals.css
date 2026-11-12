@@ -3,54 +3,62 @@
 @tailwind utilities;
 
 :root {
-  /* Apple Signature Blue Primary Token (WCAG AA compliant on white & with white text) */
-  --color-primary: #0071e3;
-  --color-primary-hover: #0077ed;
-  --color-primary-active: #0062c4;
-  --color-primary-light: #f0f7ff;
-  --color-primary-border: #bae0ff;
+  --font-bai-jamjuree: "Bai Jamjuree";
 
-  /* Apple Neutral Surfaces & Text */
+  /* Deep Forest & Warm Stone Athletic Club Palette */
+  --color-primary: #143628;
+  --color-primary-hover: #1b4534;
+  --color-primary-active: #0e271d;
+  --color-primary-light: #ebf2ee;
+  --color-primary-border: #c5d9ce;
+
+  /* Warm Stone Neutral Surfaces & Text */
   --color-surface: #ffffff;
-  --color-surface-muted: #f5f5f7;
-  --color-surface-subtle: #ebebed;
-  --color-border: #e5e5ea;
-  --color-text-main: #1d1d1f;
-  --color-text-secondary: #424245;
-  --color-text-muted: #86868b;
+  --color-surface-muted: #f6f5f0;
+  --color-surface-subtle: #efece6;
+  --color-border: #e2dfd7;
+  --color-text-main: #181a18;
+  --color-text-secondary: #4a4f4b;
+  --color-text-muted: #767b76;
 }
 
 @layer base {
+  html,
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    font-family: var(--font-bai-jamjuree), "Bai Jamjuree", -apple-system,
+      BlinkMacSystemFont, sans-serif;
+  }
+
   html {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", var(--font-ibm-plex-thai), "IBM Plex Sans Thai", "Noto Sans Thai", sans-serif;
     color: var(--color-text-main);
     background-color: var(--color-surface-muted);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.01em;
   }
 
   body {
-    @apply bg-[#f5f5f7] text-[#1d1d1f] font-normal leading-relaxed;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-[#F6F5F0] text-[#181A18] font-normal leading-relaxed;
   }
 
-  /* Typography Scale - Apple clean weights */
   h1 {
-    @apply text-2xl sm:text-3xl font-semibold tracking-tight text-[#1d1d1f] leading-snug;
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight text-[#181A18] leading-snug;
   }
 
   h2 {
-    @apply text-xl sm:text-2xl font-semibold tracking-tight text-[#1d1d1f] leading-snug;
+    @apply text-xl sm:text-2xl font-semibold tracking-tight text-[#181A18] leading-snug;
   }
 
   h3 {
-    @apply text-base sm:text-lg font-semibold text-[#1d1d1f] leading-normal;
+    @apply text-base sm:text-lg font-semibold text-[#181A18] leading-normal;
   }
 
   /* Focus ring standard for keyboard navigation */
   *:focus-visible {
-    @apply outline-none ring-2 ring-[#0071e3] ring-offset-2 ring-offset-white;
+    @apply outline-none ring-2 ring-[#143628] ring-offset-2 ring-offset-[#F6F5F0];
   }
 }
 
@@ -58,7 +66,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Hide scrollbar for horizontal pill scrollers while keeping scrollability */
+/* Hide scrollbar for horizontal scrollers while keeping scrollability */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

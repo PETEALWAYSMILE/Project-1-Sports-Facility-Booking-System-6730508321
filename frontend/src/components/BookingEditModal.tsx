@@ -225,8 +225,8 @@ export default function BookingEditModal({
         </div>
 
         {conflictingSlot ? (
-          <div className="p-3.5 rounded-control bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <div className="p-3.5 rounded-lg bg-[#FBF6EC] border border-[#E8D7B4] text-[#7C5819] text-xs flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-[#946B22] mt-0.5" />
             <span>
               {t(
                 `ช่วงเวลา ${startTime} - ${formatMinutesToTime(
@@ -243,9 +243,9 @@ export default function BookingEditModal({
             </span>
           </div>
         ) : (
-          <div className="p-3.5 rounded-control bg-primary-light border border-primary-border text-emerald-900 text-xs flex items-center justify-between">
+          <div className="p-3.5 rounded-lg bg-[#EBF2EE] border border-[#C5D9CE] text-[#143628] text-xs flex items-center justify-between">
             <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-[#143628] shrink-0" />
               <span>
                 {t("เวลาใหม่:", "New Slot:")}{" "}
                 <strong className="tabular-price">
@@ -255,7 +255,7 @@ export default function BookingEditModal({
               </span>
             </span>
             {selectedFacility && (
-              <span className="font-semibold text-sm text-primary tabular-price">
+              <span className="font-semibold text-sm text-[#143628] tabular-price">
                 ฿{(selectedFacility.hourlyRate * durationHours).toLocaleString()}
               </span>
             )}

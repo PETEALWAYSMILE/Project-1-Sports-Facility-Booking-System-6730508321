@@ -6,7 +6,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "SportArenaHub — จองสนามกีฬาออนไลน์ แบดมินตัน เทนนิส ฟุตซอล บาสเกตบอล ฟิตเนส",
+  title:
+    "SportArenaHub — จองสนามกีฬาออนไลน์ แบดมินตัน เทนนิส ฟุตซอล บาสเกตบอล ฟิตเนส",
   description:
     "ค้นหาและจองสนามกีฬาได้ทันที เช็คตารางเวลาว่างแบบเรียลไทม์ รองรับแบดมินตัน เทนนิส ฟุตซอล บาสเกตบอล และฟิตเนส",
 };
@@ -26,11 +27,11 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 font-sans">
+      <body className="min-h-screen flex flex-col bg-[#F6F5F0] text-[#181A18] font-sans antialiased">
         <LanguageProvider>
           <AuthProvider>
             <Navbar />

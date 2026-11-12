@@ -30,10 +30,11 @@ import {
   X,
   Info,
   Search,
-  CalendarClock,
+  Clock,
   CheckCircle2,
   Plus,
   LayoutGrid,
+  ShieldCheck,
 } from "lucide-react";
 
 type SortOption = "name" | "priceAsc" | "priceDesc" | "capacityDesc";
@@ -64,7 +65,9 @@ export default function HomePage() {
   // Admin Modals
   const [isFacilityModalOpen, setIsFacilityModalOpen] = useState(false);
   const [editingFacility, setEditingFacility] = useState<Facility | null>(null);
-  const [deletingFacility, setDeletingFacility] = useState<Facility | null>(null);
+  const [deletingFacility, setDeletingFacility] = useState<Facility | null>(
+    null
+  );
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -208,26 +211,29 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-10 pb-8">
-      {/* Top Search Section (Light, airy, clean one-line heading above prominent SearchBar) */}
-      <section className="bg-gradient-to-b from-white via-white/80 to-transparent border-b border-black/5 py-8 sm:py-10">
+    <div className="space-y-8 pb-8">
+      {/* Top Clubhouse Header & Search Section */}
+      <section className="bg-[#EFECE6]/70 border-b border-[#E2DFD7] py-7 sm:py-9">
         <div className="max-w-container mx-auto px-4 sm:px-6 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-[#1d1d1f] tracking-tight">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#143628] block mb-1">
+                {t("ศูนย์กีฬาและคอร์ทมาตรฐาน", "Athletic Club & Court Reservations")}
+              </span>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-[#181A18] tracking-tight">
                 {t(
-                  "ค้นหาและจองสนามกีฬาพร้อมเล่นวันนี้",
-                  "Find and book sports courts ready for play"
+                  "ค้นหาและสำรองเวลาสนามกีฬา",
+                  "Find and Reserve Sports Courts"
                 )}
               </h1>
             </div>
             <button
               type="button"
               onClick={() => setRulesModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#0071e3] hover:underline self-start sm:self-auto min-h-[36px]"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-[#143628] hover:underline self-start sm:self-auto min-h-[36px]"
             >
               <Info className="w-4 h-4 shrink-0" />
-              <span>{t("เงื่อนไขการจองสนาม", "Booking Rules")}</span>
+              <span>{t("ระเบียบการจองสนาม", "Club Booking Policy")}</span>
             </button>
           </div>
 
@@ -244,37 +250,25 @@ export default function HomePage() {
             }}
           />
 
-          {/* Horizontal Circular Sport Category Strip */}
+          {/* Segmented Sport Category Bar (Unified Deep Forest & Warm Stone) */}
           <div
             role="tablist"
             aria-label={t("เลือกประเภทกีฬา", "Filter by sport category")}
-            className="flex items-center gap-3 sm:gap-4 overflow-x-auto no-scrollbar pt-2 pb-1"
+            className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1"
           >
             <button
               type="button"
               role="tab"
               aria-selected={selectedSport === "ALL"}
               onClick={() => setSelectedSport("ALL")}
-              className="group flex flex-col items-center gap-2 min-w-[72px] py-1 focus:outline-none rounded-xl"
+              className={`inline-flex items-center gap-2 min-h-[40px] px-4 py-2 rounded-lg text-xs sm:text-sm font-medium border transition-colors whitespace-nowrap ${
+                selectedSport === "ALL"
+                  ? "bg-[#143628] text-white border-[#143628] shadow-soft"
+                  : "bg-white text-[#4A4F4B] border-[#D2CEC3] hover:border-[#143628] hover:text-[#181A18]"
+              }`}
             >
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-150 ${
-                  selectedSport === "ALL"
-                    ? "bg-[#0071e3] text-white border-transparent shadow-sm scale-105"
-                    : "bg-white text-slate-600 border-slate-200/90 group-hover:border-[#0071e3] group-hover:text-[#0071e3] shadow-soft"
-                }`}
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </div>
-              <span
-                className={`text-xs font-medium whitespace-nowrap ${
-                  selectedSport === "ALL"
-                    ? "text-[#0071e3] font-semibold"
-                    : "text-slate-700"
-                }`}
-              >
-                {t("ทั้งหมด", "All")}
-              </span>
+              <LayoutGrid className="w-4 h-4 shrink-0" />
+              <span>{t("กีฬาทั้งหมด", "All Courts")}</span>
             </button>
 
             {ALL_SPORT_KEYS.map((key) => {
@@ -287,24 +281,14 @@ export default function HomePage() {
                   role="tab"
                   aria-selected={active}
                   onClick={() => setSelectedSport(key)}
-                  className="group flex flex-col items-center gap-2 min-w-[76px] py-1 focus:outline-none rounded-xl"
+                  className={`inline-flex items-center gap-2 min-h-[40px] px-4 py-2 rounded-lg text-xs sm:text-sm font-medium border transition-colors whitespace-nowrap ${
+                    active
+                      ? "bg-[#143628] text-white border-[#143628] shadow-soft"
+                      : "bg-white text-[#4A4F4B] border-[#D2CEC3] hover:border-[#143628] hover:text-[#181A18]"
+                  }`}
                 >
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-150 ${
-                      active
-                        ? "bg-[#0071e3] text-white border-transparent shadow-sm scale-105"
-                        : `${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder} group-hover:scale-105 shadow-soft`
-                    }`}
-                  >
-                    <SportIcon sportType={key} className="w-5 h-5" />
-                  </div>
-                  <span
-                    className={`text-xs font-medium whitespace-nowrap ${
-                      active ? "text-[#0071e3] font-semibold" : "text-slate-700"
-                    }`}
-                  >
-                    {lang === "TH" ? meta.labelTH : meta.labelEN}
-                  </span>
+                  <SportIcon sportType={key} className="w-4 h-4 shrink-0" />
+                  <span>{lang === "TH" ? meta.labelTH : meta.labelEN}</span>
                 </button>
               );
             })}
@@ -320,15 +304,15 @@ export default function HomePage() {
         {/* Header Bar + Filter/Sort Buttons */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
+            <h2 className="text-lg sm:text-xl font-semibold text-[#181A18]">
               {t("สนามกีฬาที่เปิดให้บริการ", "Available Courts")}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 tabular-price">
+            <p className="text-xs sm:text-sm text-[#767B76] mt-0.5 tabular-price">
               {loading
                 ? t("กำลังค้นหาสนาม...", "Loading courts...")
                 : t(
-                    `พบ ${filteredFacilities.length} สนาม`,
-                    `Found ${filteredFacilities.length} courts`
+                    `แสดง ${filteredFacilities.length} สนามที่พร้อมให้จอง`,
+                    `Showing ${filteredFacilities.length} available courts`
                   )}
             </p>
           </div>
@@ -338,12 +322,12 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setFilterDrawerOpen(true)}
-              className="inline-flex items-center gap-2 min-h-[40px] px-4 py-2 rounded-full border border-slate-300/80 bg-white hover:bg-slate-50 text-xs sm:text-sm font-medium text-[#1d1d1f] shadow-sm transition-all active:scale-95"
+              className="inline-flex items-center gap-2 min-h-[40px] px-3.5 py-2 rounded-lg border border-[#D2CEC3] bg-white hover:bg-[#F3F1EC] text-xs sm:text-sm font-medium text-[#181A18] shadow-soft transition-colors"
             >
-              <SlidersHorizontal className="w-4 h-4 text-[#0071e3]" />
+              <SlidersHorizontal className="w-4 h-4 text-[#143628]" />
               <span>{t("ตัวกรองและเรียงลำดับ", "Filter & Sort")}</span>
               {(maxPrice < 2000 || sortBy !== "name") && (
-                <span className="w-2 h-2 rounded-full bg-[#0071e3]" />
+                <span className="w-2 h-2 rounded-full bg-[#143628]" />
               )}
             </button>
 
@@ -367,7 +351,7 @@ export default function HomePage() {
         {hasActiveFilters && (
           <div className="flex flex-wrap items-center gap-2">
             {selectedSport !== "ALL" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-[#D2CEC3] text-[#181A18] shadow-soft">
                 <span>
                   {t("กีฬา:", "Sport:")}{" "}
                   {lang === "TH"
@@ -378,7 +362,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => setSelectedSport("ALL")}
                   aria-label={t("ลบตัวกรองประเภทกีฬา", "Remove sport filter")}
-                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                  className="text-[#767B76] hover:text-[#181A18] p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -386,7 +370,7 @@ export default function HomePage() {
             )}
 
             {searchQuery.trim() !== "" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-[#D2CEC3] text-[#181A18] shadow-soft">
                 <span>
                   {t("คำค้น:", "Search:")} &ldquo;{searchQuery.trim()}&rdquo;
                 </span>
@@ -394,7 +378,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => setSearchQuery("")}
                   aria-label={t("ลบคำค้นหา", "Remove search keyword")}
-                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                  className="text-[#767B76] hover:text-[#181A18] p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -402,15 +386,16 @@ export default function HomePage() {
             )}
 
             {maxPrice < 2000 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft tabular-price">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-[#D2CEC3] text-[#181A18] shadow-soft tabular-price">
                 <span>
-                  {t("ไม่เกิน", "Up to")} ฿{maxPrice.toLocaleString()}/{t("ชม.", "hr")}
+                  {t("ไม่เกิน", "Up to")} ฿{maxPrice.toLocaleString()}/
+                  {t("ชม.", "hr")}
                 </span>
                 <button
                   type="button"
                   onClick={() => setMaxPrice(2000)}
                   aria-label={t("ลบตัวกรองราคา", "Remove price filter")}
-                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                  className="text-[#767B76] hover:text-[#181A18] p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -418,14 +403,14 @@ export default function HomePage() {
             )}
 
             {sortBy !== "name" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-slate-200 text-slate-700 shadow-soft">
-                <ArrowUpDown className="w-3 h-3 text-primary" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-white border border-[#D2CEC3] text-[#181A18] shadow-soft">
+                <ArrowUpDown className="w-3 h-3 text-[#143628]" />
                 <span>{sortLabelMap[sortBy]}</span>
                 <button
                   type="button"
                   onClick={() => setSortBy("name")}
                   aria-label={t("คืนค่าการเรียงลำดับ", "Reset sort")}
-                  className="text-slate-400 hover:text-slate-700 p-0.5"
+                  className="text-[#767B76] hover:text-[#181A18] p-0.5"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -435,7 +420,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={clearAllFilters}
-              className="text-xs font-medium text-primary hover:text-primary-hover px-2 py-1"
+              className="text-xs font-semibold text-[#143628] hover:underline px-2 py-1"
             >
               {t("ล้างตัวกรอง", "Clear All")}
             </button>
@@ -490,86 +475,91 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* "จองง่ายใน 3 ขั้นตอน" (Easy Booking in 3 Steps) */}
+        {/* Clubhouse Information Strip (Concise, authentic venue information) */}
         <section
-          aria-labelledby="how-it-works-heading"
-          className="pt-8 mt-12 border-t border-slate-200"
+          aria-labelledby="club-info-heading"
+          className="pt-8 mt-10 border-t border-[#E2DFD7]"
         >
-          <div className="bg-white rounded-card border border-slate-200 p-6 sm:p-8 shadow-soft">
-            <div className="text-center max-w-xl mx-auto mb-8">
-              <h2
-                id="how-it-works-heading"
-                className="text-lg sm:text-xl font-semibold text-slate-900"
-              >
-                {t("จองง่ายใน 3 ขั้นตอน", "Book Your Court in 3 Simple Steps")}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                {t(
-                  "เช็คตารางเวลาว่างและล็อกคิวสนามได้ทันทีโดยไม่ต้องรอคอนเฟิร์มผ่านแชท",
-                  "Check live court availability and lock in your slot instantly."
-                )}
-              </p>
+          <div className="bg-white rounded-xl border border-[#E2DFD7] p-6 sm:p-7 shadow-soft">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 mb-5 border-b border-[#EFECE6]">
+              <div>
+                <h2
+                  id="club-info-heading"
+                  className="text-base sm:text-lg font-semibold text-[#181A18]"
+                >
+                  {t(
+                    "มาตรฐานการให้บริการและการสำรองคอร์ท",
+                    "Club Reservation & Court Standards"
+                  )}
+                </h2>
+                <p className="text-xs sm:text-sm text-[#767B76] mt-0.5">
+                  {t(
+                    "ข้อมูลสำคัญสำหรับการเข้าใช้บริการสนามกีฬาในเครือ SportArenaHub",
+                    "Essential guidelines for members playing at SportArenaHub venues"
+                  )}
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#F3F1EC] border border-[#DCD8CE] text-xs font-medium text-[#143628] self-start md:self-auto tabular-price">
+                <Clock className="w-3.5 h-3.5" />
+                <span>
+                  {t("เปิดบริการทุกวัน 06:00 – 22:00 น.", "Open Daily 06:00 – 22:00")}
+                </span>
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-start gap-4 p-4 rounded-control bg-slate-50/70 border border-slate-100">
-                <div className="w-10 h-10 rounded-control bg-primary-light text-primary flex items-center justify-center shrink-0 font-semibold text-sm">
-                  <Search className="w-5 h-5" />
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-medium text-primary">
-                    {t("ขั้นตอนที่ 1", "Step 1")}
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">
-                    {t("ค้นหาสนามที่ต้องการ", "Find Your Court")}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs sm:text-sm">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 font-semibold text-[#181A18]">
+                  <Clock className="w-4 h-4 text-[#143628] shrink-0" />
+                  <span>
                     {t(
-                      "เลือกประเภทกีฬา ทำเล และเปรียบเทียบราคาพร้อมสิ่งอำนวยความสะดวกครบถ้วน",
-                      "Filter by sport, location, and hourly rate to find the right arena."
+                      "รอบเวลาจองยืดหยุ่น 30 นาที – 2 ชั่วโมง",
+                      "30-Min to 2-Hour Sessions"
                     )}
-                  </p>
+                  </span>
                 </div>
+                <p className="text-xs text-[#4A4F4B] leading-relaxed pl-6">
+                  {t(
+                    "เลือกเวลาเริ่มเล่นได้ทุกครึ่งชั่วโมง สูงสุดไม่เกิน 2 ชั่วโมงต่อรายการ เพื่อกระจายรอบสนามให้สมาชิกอย่างทั่วถึง",
+                    "Reserve courts in 30-minute increments up to 2 hours per booking."
+                  )}
+                </p>
               </div>
 
-              <div className="flex items-start gap-4 p-4 rounded-control bg-slate-50/70 border border-slate-100">
-                <div className="w-10 h-10 rounded-control bg-primary-light text-primary flex items-center justify-center shrink-0 font-semibold text-sm">
-                  <CalendarClock className="w-5 h-5" />
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-medium text-primary">
-                    {t("ขั้นตอนที่ 2", "Step 2")}
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">
-                    {t("เลือกวันและช่วงเวลาว่าง", "Pick Date & Time Slot")}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 font-semibold text-[#181A18]">
+                  <ShieldCheck className="w-4 h-4 text-[#143628] shrink-0" />
+                  <span>
                     {t(
-                      "เลือกช่วงเวลาทีละ 30 นาที (0.5 - 2 ชม.) ระบบคำนวณราคาและกันคิวซ้อนทับอัตโนมัติ",
-                      "Select 30-minute increments (0.5 to 2 hrs) with live overlap protection."
+                      "ล็อกคอร์ทแบบเรียลไทม์ ไม่ซ้อนทับ",
+                      "Real-Time Court Locking"
                     )}
-                  </p>
+                  </span>
                 </div>
+                <p className="text-xs text-[#4A4F4B] leading-relaxed pl-6">
+                  {t(
+                    "ตารางเวลาเชื่อมต่อกับหน้าสนามโดยตรง ป้องกันคิวชนทั้งในคอร์ทเดียวกันและระหว่างรายการจองของสมาชิก",
+                    "Live schedule synchronization prevents double-booking across all courts."
+                  )}
+                </p>
               </div>
 
-              <div className="flex items-start gap-4 p-4 rounded-control bg-slate-50/70 border border-slate-100">
-                <div className="w-10 h-10 rounded-control bg-primary-light text-primary flex items-center justify-center shrink-0 font-semibold text-sm">
-                  <CheckCircle2 className="w-5 h-5" />
-                </div>
-                <div className="space-y-1">
-                  <div className="text-xs font-medium text-primary">
-                    {t("ขั้นตอนที่ 3", "Step 3")}
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">
-                    {t("ยืนยันและรับใบจองทันที", "Confirm & Play")}
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 font-semibold text-[#181A18]">
+                  <CheckCircle2 className="w-4 h-4 text-[#143628] shrink-0" />
+                  <span>
                     {t(
-                      "รับรหัสการจองและ QR Pass สำหรับแสดงหน้าสนามหรือเพิ่มลงปฏิทินได้ทันที",
-                      "Receive your SAH booking code and QR pass ready for check-in."
+                      "เช็คอินหน้าสนามด้วยรหัส SAH",
+                      "Fast Check-In with SAH Pass"
                     )}
-                  </p>
+                  </span>
                 </div>
+                <p className="text-xs text-[#4A4F4B] leading-relaxed pl-6">
+                  {t(
+                    "แสดงรหัสการจองหรือ QR Pass ที่เคาน์เตอร์ต้อนรับก่อนเวลาเริ่ม 10 นาที พร้อมสิทธิ์เลื่อนเวลาล่วงหน้าได้ฟรี",
+                    "Present your SAH reference pass at reception 10 minutes prior to play."
+                  )}
+                </p>
               </div>
             </div>
           </div>
@@ -605,7 +595,7 @@ export default function HomePage() {
         <div className="space-y-6">
           {/* Sort Order */}
           <div className="space-y-2.5">
-            <label className="block text-sm font-semibold text-slate-900">
+            <label className="block text-sm font-semibold text-[#181A18]">
               {t("เรียงลำดับตาม", "Sort By")}
             </label>
             <div className="grid grid-cols-1 gap-2">
@@ -616,10 +606,10 @@ export default function HomePage() {
                   key={opt}
                   type="button"
                   onClick={() => setSortBy(opt)}
-                  className={`min-h-[44px] px-4 py-2.5 rounded-control border text-left text-sm font-medium transition-colors flex items-center justify-between ${
+                  className={`min-h-[44px] px-4 py-2.5 rounded-lg border text-left text-sm font-medium transition-colors flex items-center justify-between ${
                     sortBy === opt
-                      ? "bg-primary-light border-primary text-primary"
-                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                      ? "bg-[#EBF2EE] border-[#143628] text-[#143628] font-semibold"
+                      : "bg-white border-[#D2CEC3] text-[#4A4F4B] hover:bg-[#F6F5F0]"
                   }`}
                 >
                   <span>{sortLabelMap[opt]}</span>
@@ -630,15 +620,15 @@ export default function HomePage() {
           </div>
 
           {/* Max Hourly Price */}
-          <div className="space-y-3 pt-4 border-t border-slate-200">
+          <div className="space-y-3 pt-4 border-t border-[#E2DFD7]">
             <div className="flex items-center justify-between">
               <label
                 htmlFor="price-range-slider"
-                className="text-sm font-semibold text-slate-900"
+                className="text-sm font-semibold text-[#181A18]"
               >
                 {t("งบประมาณสูงสุดต่อชั่วโมง", "Max Hourly Rate")}
               </label>
-              <span className="text-sm font-semibold text-primary tabular-price">
+              <span className="text-sm font-semibold text-[#143628] tabular-price">
                 ฿{maxPrice.toLocaleString()} / {t("ชม.", "hr")}
               </span>
             </div>
@@ -651,10 +641,10 @@ export default function HomePage() {
               step={50}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-[#0071e3] h-2 cursor-pointer"
+              className="w-full accent-[#143628] h-2 cursor-pointer"
             />
 
-            <div className="flex justify-between text-xs text-slate-400 tabular-price">
+            <div className="flex justify-between text-xs text-[#767B76] tabular-price">
               <span>฿100</span>
               <span>฿500</span>
               <span>฿1,000</span>
@@ -667,10 +657,10 @@ export default function HomePage() {
                   key={preset}
                   type="button"
                   onClick={() => setMaxPrice(preset)}
-                  className={`min-h-[38px] rounded-control border text-xs font-medium tabular-price transition-colors ${
+                  className={`min-h-[38px] rounded-lg border text-xs font-medium tabular-price transition-colors ${
                     maxPrice === preset
-                      ? "bg-primary text-white border-primary"
-                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                      ? "bg-[#143628] text-white border-[#143628]"
+                      : "bg-[#F6F5F0] text-[#4A4F4B] border-[#D2CEC3] hover:bg-[#EFECE6]"
                   }`}
                 >
                   {preset === 2000 ? t("ทั้งหมด", "All") : `≤ ฿${preset}`}
@@ -685,9 +675,12 @@ export default function HomePage() {
       <Modal
         isOpen={rulesModalOpen}
         onClose={() => setRulesModalOpen(false)}
-        title={t("เงื่อนไขและข้อกำหนดการจองสนาม", "Court Booking Rules & Policy")}
+        title={t(
+          "ระเบียบและเงื่อนไขการจองสนาม",
+          "Court Booking Rules & Policy"
+        )}
         subtitle={t(
-          "กติกาการจองเพื่อให้สมาชิกทุกคนเข้าใช้งานสนามได้อย่างทั่วถึง",
+          "ข้อกำหนดมาตรฐานเพื่อให้สมาชิกทุกท่านเข้าใช้งานสนามได้อย่างทั่วถึง",
           "Standard reservation guidelines for all SportArenaHub members"
         )}
         footer={
@@ -696,14 +689,17 @@ export default function HomePage() {
           </Button>
         }
       >
-        <ul className="space-y-3 text-sm text-slate-700">
-          <li className="flex items-start gap-3 p-3 rounded-control bg-slate-50 border border-slate-200/80">
-            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+        <ul className="space-y-3 text-sm text-[#4A4F4B]">
+          <li className="flex items-start gap-3 p-3.5 rounded-lg bg-[#F6F5F0] border border-[#E2DFD7]">
+            <CheckCircle2 className="w-5 h-5 text-[#143628] shrink-0 mt-0.5" />
             <div>
-              <strong className="font-semibold text-slate-900 block">
-                {t("จองล่วงหน้าตั้งแต่วันนี้เป็นต้นไป", "Advance Booking from Today Onwards")}
+              <strong className="font-semibold text-[#181A18] block">
+                {t(
+                  "จองล่วงหน้าตั้งแต่วันนี้เป็นต้นไป",
+                  "Advance Booking from Today Onwards"
+                )}
               </strong>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-[#4A4F4B]">
                 {t(
                   "สามารถเลือกจองคิวสนามตั้งแต่วันปัจจุบันเป็นต้นไป ไม่สามารถเลือกวันที่ผ่านมาแล้วได้",
                   "Reservations are open from the current date onwards."
@@ -711,13 +707,16 @@ export default function HomePage() {
               </span>
             </div>
           </li>
-          <li className="flex items-start gap-3 p-3 rounded-control bg-slate-50 border border-slate-200/80">
-            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <li className="flex items-start gap-3 p-3.5 rounded-lg bg-[#F6F5F0] border border-[#E2DFD7]">
+            <CheckCircle2 className="w-5 h-5 text-[#143628] shrink-0 mt-0.5" />
             <div>
-              <strong className="font-semibold text-slate-900 block">
-                {t("ระยะเวลา 0.5 – 2 ชั่วโมง ต่อรายการ", "0.5 to 2 Hours per Booking")}
+              <strong className="font-semibold text-[#181A18] block">
+                {t(
+                  "ระยะเวลา 0.5 – 2 ชั่วโมง ต่อรายการ",
+                  "0.5 to 2 Hours per Booking"
+                )}
               </strong>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-[#4A4F4B]">
                 {t(
                   "เลือกช่วงเวลาได้ทีละ 30 นาที สูงสุดไม่เกิน 2 ชั่วโมงต่อ 1 รายการจอง และต้องสิ้นสุดภายในวันเดียวกัน",
                   "Book in 30-minute increments from 30 minutes up to 2 hours per reservation."
@@ -725,13 +724,16 @@ export default function HomePage() {
               </span>
             </div>
           </li>
-          <li className="flex items-start gap-3 p-3 rounded-control bg-slate-50 border border-slate-200/80">
-            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+          <li className="flex items-start gap-3 p-3.5 rounded-lg bg-[#F6F5F0] border border-[#E2DFD7]">
+            <CheckCircle2 className="w-5 h-5 text-[#143628] shrink-0 mt-0.5" />
             <div>
-              <strong className="font-semibold text-slate-900 block">
-                {t("ป้องกันเวลาซ้อนทับอัตโนมัติ", "Automatic Overlap Protection")}
+              <strong className="font-semibold text-[#181A18] block">
+                {t(
+                  "ป้องกันเวลาซ้อนทับอัตโนมัติ",
+                  "Automatic Overlap Protection"
+                )}
               </strong>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-[#4A4F4B]">
                 {t(
                   "ระบบตรวจสอบทั้งคิวของสนามและคิวของสมาชิก เพื่อป้องกันการจองซ้อนในช่วงเวลาเดียวกัน",
                   "Prevents double-booking on the same court or overlapping slots for the same member."

@@ -149,41 +149,41 @@ export default function TimeSlotGrid({
     <div className="space-y-4">
       {/* Legend (Color + Text/Symbol) */}
       <div
-        className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-control border border-slate-200"
+        className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#4A4F4B] bg-[#F6F5F0] p-3 rounded-lg border border-[#E2DFD7]"
         aria-label={t("คำอธิบายสัญลักษณ์ตารางเวลา", "Time slot status legend")}
       >
         <div className="inline-flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded bg-white border border-slate-300 inline-block" />
+          <span className="w-3.5 h-3.5 rounded bg-white border border-[#D2CEC3] inline-block" />
           <span>{t("ว่าง", "Available")}</span>
         </div>
         <div className="inline-flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded bg-primary inline-flex items-center justify-center text-white">
+          <span className="w-3.5 h-3.5 rounded bg-[#143628] inline-flex items-center justify-center text-white">
             <Check className="w-2.5 h-2.5" />
           </span>
-          <span className="font-medium text-slate-900">
+          <span className="font-medium text-[#181A18]">
             {t("กำลังเลือก", "Selected")}
           </span>
         </div>
         <div className="inline-flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded bg-slate-200 border border-slate-300 inline-block" />
+          <span className="w-3.5 h-3.5 rounded bg-[#E6E3DC] border border-[#D2CEC3] inline-block" />
           <span>{t("จองแล้ว", "Booked")}</span>
         </div>
         <div className="inline-flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded bg-slate-100 border border-dashed border-slate-300 opacity-60 inline-block" />
+          <span className="w-3.5 h-3.5 rounded bg-[#EFECE6] border border-dashed border-[#D2CEC3] opacity-60 inline-block" />
           <span>{t("ช่วงที่ผ่านมาแล้ว", "Past")}</span>
         </div>
       </div>
 
       {/* Helper instruction + Duration Quick Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#767B76]">
           {t(
             "คลิกช่องแรกเพื่อเลือกเวลาเริ่ม และคลิกช่องถัดไปเพื่อเลือกช่วงต่อเนื่อง (0.5 - 2 ชม.)",
             "Click a slot to set start time, or click a subsequent slot to select a continuous range (0.5 - 2 hrs)."
           )}
         </p>
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-xs text-slate-500 mr-1">
+          <span className="text-xs text-[#767B76] mr-1">
             {t("ระยะเวลา:", "Duration:")}
           </span>
           {[0.5, 1, 1.5, 2].map((hr) => {
@@ -200,8 +200,8 @@ export default function TimeSlotGrid({
                 }}
                 className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-medium tabular-price border transition-colors ${
                   active
-                    ? "bg-primary text-white border-primary"
-                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none"
+                    ? "bg-[#143628] text-white border-[#143628]"
+                    : "bg-white text-[#4A4F4B] border-[#D2CEC3] hover:bg-[#F6F5F0] disabled:opacity-40 disabled:pointer-events-none"
                 }`}
               >
                 {hr} {t("ชม.", "hr")}
@@ -214,9 +214,9 @@ export default function TimeSlotGrid({
       {rangeNotice && (
         <div
           role="alert"
-          className="flex items-start gap-2 p-3 rounded-control bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium"
+          className="flex items-start gap-2 p-3 rounded-lg bg-[#FBF6EC] border border-[#E8D7B4] text-[#7C5819] text-xs font-medium"
         >
-          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-[#946B22] shrink-0 mt-0.5" />
           <span>{rangeNotice}</span>
         </div>
       )}
@@ -236,28 +236,28 @@ export default function TimeSlotGrid({
             state === "PAST";
 
           let btnStyle =
-            "bg-white hover:bg-primary-light hover:border-primary text-slate-800 border-slate-200";
+            "bg-white hover:bg-[#EBF2EE] hover:border-[#143628] text-[#181A18] border-[#D2CEC3]";
           let statusLabel = t("ว่าง", "Open");
 
           if (state === "SELECTED") {
             btnStyle =
-              "bg-primary text-white border-primary shadow-soft ring-2 ring-primary/20";
+              "bg-[#143628] text-white border-[#143628] shadow-soft ring-2 ring-[#143628]/20";
             statusLabel = t("เลือกอยู่", "Selected");
           } else if (state === "BOOKED") {
             btnStyle =
-              "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed";
+              "bg-[#EFECE6] text-[#8C908C] border-[#E2DFD7] cursor-not-allowed";
             statusLabel = t("จองแล้ว", "Booked");
           } else if (state === "MY_BOOKING") {
             btnStyle =
-              "bg-emerald-50 text-emerald-800 border-emerald-200 cursor-not-allowed";
+              "bg-[#EBF2EE] text-[#143628] border-[#C5D9CE] cursor-not-allowed";
             statusLabel = t("คิวของคุณ", "Yours");
           } else if (state === "MY_CONFLICT") {
             btnStyle =
-              "bg-amber-50 text-amber-800 border-amber-200 cursor-not-allowed";
+              "bg-[#FBF6EC] text-[#7C5819] border-[#E8D7B4] cursor-not-allowed";
             statusLabel = t("คิวชน", "Busy");
           } else if (state === "PAST") {
             btnStyle =
-              "bg-slate-50 text-slate-300 border-dashed border-slate-200 opacity-65 cursor-not-allowed";
+              "bg-[#F6F5F0] text-[#B8B3A6] border-dashed border-[#E2DFD7] opacity-65 cursor-not-allowed";
             statusLabel = t("ผ่านแล้ว", "Past");
           }
 
@@ -271,7 +271,7 @@ export default function TimeSlotGrid({
               onClick={() =>
                 handleSlotClick(slot.startMin, slot.endMin, slot.label)
               }
-              className={`min-h-[48px] px-2.5 py-2 rounded-control border text-left transition-all duration-150 flex flex-col justify-between ${btnStyle}`}
+              className={`min-h-[48px] px-2.5 py-2 rounded-lg border text-left transition-all duration-150 flex flex-col justify-between ${btnStyle}`}
             >
               <div className="flex items-center justify-between gap-1 w-full">
                 <span className="text-xs sm:text-sm font-semibold tabular-price">
@@ -284,7 +284,7 @@ export default function TimeSlotGrid({
               <div className="flex items-center justify-between gap-1 w-full mt-0.5">
                 <span
                   className={`text-[11px] tabular-price ${
-                    state === "SELECTED" ? "text-emerald-100" : "opacity-75"
+                    state === "SELECTED" ? "text-[#C5D9CE]" : "opacity-75"
                   }`}
                 >
                   - {slot.endLabel}
@@ -294,7 +294,7 @@ export default function TimeSlotGrid({
                     state === "SELECTED"
                       ? "text-white"
                       : state === "AVAILABLE"
-                      ? "text-primary"
+                      ? "text-[#143628]"
                       : ""
                   }`}
                 >
