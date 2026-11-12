@@ -167,13 +167,11 @@ export default function FacilityDetailPage() {
     return (
       <div className="max-w-container mx-auto px-4 sm:px-6 py-8 space-y-6">
         <Skeleton className="h-5 w-64" />
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-          <Skeleton className="lg:col-span-2 aspect-[16/10] w-full rounded-card" />
-          <div className="hidden lg:grid lg:col-span-2 grid-cols-2 gap-3">
-            <Skeleton className="aspect-[16/10] w-full rounded-card" />
-            <Skeleton className="aspect-[16/10] w-full rounded-card" />
-            <Skeleton className="aspect-[16/10] w-full rounded-card" />
-            <Skeleton className="aspect-[16/10] w-full rounded-card" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Skeleton className="md:col-span-2 aspect-[16/10] w-full rounded-card" />
+          <div className="hidden md:grid grid-rows-2 gap-3">
+            <Skeleton className="w-full h-full rounded-card" />
+            <Skeleton className="w-full h-full rounded-card" />
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -469,26 +467,23 @@ export default function FacilityDetailPage() {
         </div>
       </div>
 
-      {/* Photo Gallery: 1 Large + 4 Small on Desktop / Horizontal Swipe Slider on Mobile */}
+      {/* Photo Gallery: 1 Large + 2 Stacked on Desktop / Horizontal Swipe Slider on Mobile */}
       <section aria-label={t("รูปภาพสนามกีฬา", "Court photo gallery")}>
-        {/* Desktop 5-Photo Grid */}
-        <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-3 h-[380px] rounded-card overflow-hidden">
+        {/* Desktop 3-Photo Grid */}
+        <div className="hidden md:grid grid-cols-3 grid-rows-2 gap-3 h-[360px] rounded-card overflow-hidden">
           <button
             type="button"
             onClick={() => setActiveImageIdx(0)}
-            className="col-span-2 row-span-2 relative group overflow-hidden bg-slate-100 focus:outline-none"
+            className="col-span-2 row-span-2 relative group overflow-hidden bg-[#EFECE6] focus:outline-none"
           >
             <img
               src={galleryImages[activeImageIdx] || galleryImages[0]}
               alt={facility.name}
               className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
             />
-            <div className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-white/95 text-slate-800 text-xs font-medium shadow-soft">
-              {t("ภาพสนามจริง", "Verified Arena")}
-            </div>
           </button>
 
-          {galleryImages.slice(1, 5).map((imgUrl, idx) => {
+          {galleryImages.slice(1, 3).map((imgUrl, idx) => {
             const actualIdx = idx + 1;
             const isSelected = activeImageIdx === actualIdx;
             return (
@@ -496,7 +491,7 @@ export default function FacilityDetailPage() {
                 key={idx}
                 type="button"
                 onClick={() => setActiveImageIdx(actualIdx)}
-                className={`relative group overflow-hidden bg-slate-100 focus:outline-none ${
+                className={`relative group overflow-hidden bg-[#EFECE6] focus:outline-none ${
                   isSelected ? "ring-2 ring-primary" : ""
                 }`}
               >

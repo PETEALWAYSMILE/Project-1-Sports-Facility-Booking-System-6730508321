@@ -33,11 +33,10 @@ export const SPORT_META_MAP: Record<SportKey, SportMeta> = {
     fallbackBg: "bg-[#EFECE6]",
     fallbackIconText: "text-[#143628]",
     defaultImages: [
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1613918431703-aa50889e3be9?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1613918431703-aa50889e3be9?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1626721105368-a69248e93b32?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?auto=format&fit=crop&w=900&q=80",
     ],
     amenities: [
       { id: "mat", labelTH: "พื้นสนามยางมาตรฐาน BWF", labelEN: "BWF Standard Court Mat" },
@@ -63,11 +62,10 @@ export const SPORT_META_MAP: Record<SportKey, SportMeta> = {
     fallbackBg: "bg-[#EFECE6]",
     fallbackIconText: "text-[#143628]",
     defaultImages: [
+      "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1530915365347-e35b749a0381?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1576610616656-d3aa5d1f4534?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1639161775388-db5b5d5cc9eb?auto=format&fit=crop&w=900&q=80",
     ],
     amenities: [
       { id: "surface", labelTH: "พื้น Hard Court มาตรฐาน ITF", labelEN: "ITF Acrylic Hard Court" },
@@ -94,10 +92,9 @@ export const SPORT_META_MAP: Record<SportKey, SportMeta> = {
     fallbackIconText: "text-[#143628]",
     defaultImages: [
       "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=900&q=80",
     ],
     amenities: [
       { id: "turf", labelTH: "หญ้าเทียมเกรดพรีเมียม / พื้นสนามในร่ม", labelEN: "FIFA Quality Pro Turf" },
@@ -124,10 +121,9 @@ export const SPORT_META_MAP: Record<SportKey, SportMeta> = {
     fallbackIconText: "text-[#143628]",
     defaultImages: [
       "https://images.unsplash.com/photo-1505666287802-931dc83948e9?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1519861531473-9200262188bf?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1608245449230-4ac19066d2d0?auto=format&fit=crop&w=900&q=80",
     ],
     amenities: [
       { id: "hardwood", labelTH: "พื้นไม้ปาร์เก้ซับแรงกระแทก", labelEN: "Pro Hardwood Maple Court" },
@@ -154,9 +150,8 @@ export const SPORT_META_MAP: Record<SportKey, SportMeta> = {
     fallbackIconText: "text-[#143628]",
     defaultImages: [
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80",
       "https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&w=900&q=80",
     ],
     amenities: [
@@ -247,9 +242,9 @@ export function getFacilityGallery(facility: Facility): string[] {
     ...meta.defaultImages.slice(0, offset),
   ];
   if (custom) {
-    return [custom, ...rotated.filter((u) => u !== custom)].slice(0, 5);
+    return [custom, ...rotated.filter((u) => u !== custom)].slice(0, 3);
   }
-  return rotated.slice(0, 5);
+  return rotated.slice(0, 3);
 }
 
 export function getFacilityPrimaryImage(facility: Facility): string {
