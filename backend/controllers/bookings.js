@@ -1,13 +1,31 @@
 const Booking = require("../models/Booking");
 const Facility = require("../models/Facility");
 
+const getBangkokNow = () => {
+  const now = new Date();
+  const bkkTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  const todayUtcStr = now.toISOString().slice(0, 10);
+  const currentMinutes = bkkTime.getUTCHours() * 60 + bkkTime.getUTCMinutes();
+  return { todayUtcStr, currentMinutes };
+};
+
+const isBookingStartedOrPast = (booking) => {
+  const bDateStr = booking.bookingDate.toISOString().slice(0, 10);
+  const { todayUtcStr, currentMinutes } = getBangkokNow();
+  if (bDateStr < todayUtcStr) return true;
+  if (bDateStr === todayUtcStr && booking.startMinutes <= currentMinutes) {
+    return true;
+  }
+  return false;
+};
+
 const parseBookingInput = ({ bookingDate, startTime, durationHours }) => {
   if (!bookingDate || !/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime || "")) {
     return { error: "bookingDate and startTime in HH:mm format are required" };
   }
   const duration = Number(durationHours);
-  if (!Number.isFinite(duration) || duration <= 0 || duration > 2) {
-    return { error: "Booking duration must be greater than 0 and at most 2 hours" };
+  if (!Number.isFinite(duration) || duration < 0.5 || duration > 2) {
+    return { error: "Booking duration must be between 0.5 and 2 hours" };
   }
 
   const date = new Date(`${bookingDate}T00:00:00.000Z`);
@@ -19,7 +37,14 @@ const parseBookingInput = ({ bookingDate, startTime, durationHours }) => {
   const [hours, minutes] = startTime.split(":").map(Number);
   const startMinutes = hours * 60 + minutes;
   const endMinutes = startMinutes + duration * 60;
-  if (endMinutes > 1440) return { error: "Booking must end on the same day" };
+  if (startMinutes < 360 || endMinutes > 1320) {
+    return { error: "Booking must be within operating hours (06:00 - 22:00)" };
+  }
+
+  const { todayUtcStr, currentMinutes } = getBangkokNow();
+  if (bookingDate === todayUtcStr && startMinutes <= currentMinutes) {
+    return { error: "Booking start time cannot be in the past" };
+  }
 
   return { date, startMinutes, endMinutes, duration };
 };
@@ -102,6 +127,21 @@ exports.updateBooking = async (req, res, next) => {
     if (req.user.role !== "admin" && booking.user.toString() !== req.user.id) {
       return res.status(403).json({ success: false, error: "Not authorized to edit this booking" });
     }
+    if (isBookingStartedOrPast(booking)) {
+      return res.status(400).json({
+        success: false,
+        error: "Cannot modify a booking that has already started or completed",
+      });
+    }
+    if (
+      req.body.facility &&
+      req.body.facility.toString() !== booking.facility.toString()
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: "Cannot change the sports facility of an existing booking",
+      });
+    }
 
     const values = {
       bookingDate: req.body.bookingDate || booking.bookingDate.toISOString().slice(0, 10),
@@ -111,7 +151,7 @@ exports.updateBooking = async (req, res, next) => {
     const parsed = parseBookingInput(values);
     if (parsed.error) return res.status(400).json({ success: false, error: parsed.error });
 
-    const facilityId = req.body.facility || booking.facility;
+    const facilityId = booking.facility;
     const facility = await Facility.findOne({ _id: facilityId, isActive: true });
     if (!facility) return res.status(404).json({ success: false, error: "Facility not found or inactive" });
     const conflict = await findConflict({
@@ -144,6 +184,12 @@ exports.deleteBooking = async (req, res, next) => {
     if (!booking) return res.status(404).json({ success: false, error: "Booking not found" });
     if (req.user.role !== "admin" && booking.user.toString() !== req.user.id) {
       return res.status(403).json({ success: false, error: "Not authorized to delete this booking" });
+    }
+    if (isBookingStartedOrPast(booking)) {
+      return res.status(400).json({
+        success: false,
+        error: "Cannot cancel a booking that has already started or completed",
+      });
     }
     await booking.deleteOne();
     res.status(200).json({ success: true, data: {} });

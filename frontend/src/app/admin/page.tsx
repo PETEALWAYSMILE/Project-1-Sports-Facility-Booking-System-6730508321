@@ -16,6 +16,7 @@ import {
   getCancelledBookings,
   getFacilityPrimaryImage,
   getSportName,
+  isBookingModifiable,
   resolveSportKey,
   saveCancelledBooking,
   setCustomFacilityImage,
@@ -157,6 +158,15 @@ export default function AdminDashboardPage() {
       setLoading(false);
     }
   }, [authLoading, user, fetchAdminData]);
+
+  useEffect(() => {
+    if (!openActionRowId) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenActionRowId(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [openActionRowId]);
 
   // Combined bookings (active + locally cancelled history for full status visibility)
   const allCombinedBookings = useMemo<(Booking & { isCancelled?: boolean })[]>(() => {
@@ -1196,6 +1206,27 @@ export default function AdminDashboardPage() {
                                 );
                               }
 
+                              const now = new Date();
+                              const currentLocalMins =
+                                now.getHours() * 60 + now.getMinutes();
+                              const isPastCell =
+                                timelineDate < todayUtc ||
+                                (timelineDate === todayUtc &&
+                                  cellStartMin <= currentLocalMins);
+
+                              if (isPastCell) {
+                                return (
+                                  <div
+                                    key={hr}
+                                    className="min-h-[54px] border-r border-slate-100 bg-slate-50/60"
+                                    title={t(
+                                      "ช่วงเวลาที่ผ่านไปแล้ว",
+                                      "Past time slot"
+                                    )}
+                                  />
+                                );
+                              }
+
                               return (
                                 <button
                                   key={hr}
@@ -1432,53 +1463,71 @@ export default function AdminDashboardPage() {
                               </button>
 
                               {isMenuOpen && (
-                                <div className="absolute right-4 mt-1 w-44 bg-white rounded-card border border-slate-200 shadow-elevated py-1 z-30 text-left">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setOpenActionRowId(null);
-                                      setPassBooking(b);
-                                    }}
-                                    className="w-full min-h-[40px] px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                  >
-                                    <FileText className="w-3.5 h-3.5 text-primary" />
-                                    <span>
-                                      {t("ดูรายละเอียด", "View Details")}
-                                    </span>
-                                  </button>
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-20"
+                                    onClick={() => setOpenActionRowId(null)}
+                                  />
+                                  <div className="absolute right-4 mt-1 w-48 bg-white rounded-card border border-slate-200 shadow-elevated py-1 z-30 text-left">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenActionRowId(null);
+                                        setPassBooking(b);
+                                      }}
+                                      className="w-full min-h-[40px] px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                    >
+                                      <FileText className="w-3.5 h-3.5 text-primary" />
+                                      <span>
+                                        {t("ดูรายละเอียด", "View Details")}
+                                      </span>
+                                    </button>
 
-                                  {!b.isCancelled && (
-                                    <>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setOpenActionRowId(null);
-                                          setEditingBooking(b);
-                                        }}
-                                        className="w-full min-h-[40px] px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                      >
-                                        <Edit3 className="w-3.5 h-3.5 text-slate-500" />
-                                        <span>
-                                          {t("แก้ไขวัน/เวลา", "Reschedule")}
-                                        </span>
-                                      </button>
+                                    {isBookingModifiable(b) ? (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setOpenActionRowId(null);
+                                            setEditingBooking(b);
+                                          }}
+                                          className="w-full min-h-[40px] px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                                        >
+                                          <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+                                          <span>
+                                            {t("แก้ไขวัน/เวลา", "Reschedule")}
+                                          </span>
+                                        </button>
 
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setOpenActionRowId(null);
-                                          setCancellingBooking(b);
-                                        }}
-                                        className="w-full min-h-[40px] px-3.5 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2"
-                                      >
-                                        <XCircle className="w-3.5 h-3.5" />
-                                        <span>
-                                          {t("ยกเลิกการจอง", "Cancel Booking")}
-                                        </span>
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setOpenActionRowId(null);
+                                            setCancellingBooking(b);
+                                          }}
+                                          className="w-full min-h-[40px] px-3.5 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2"
+                                        >
+                                          <XCircle className="w-3.5 h-3.5" />
+                                          <span>
+                                            {t("ยกเลิกการจอง", "Cancel Booking")}
+                                          </span>
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <div className="px-3.5 py-2 text-[11px] text-slate-400 border-t border-slate-100">
+                                        {b.isCancelled
+                                          ? t(
+                                              "รายการนี้ถูกยกเลิกแล้ว",
+                                              "Cancelled booking"
+                                            )
+                                          : t(
+                                              "เสร็จสิ้นแล้ว ไม่สามารถแก้ไขได้",
+                                              "Completed (locked)"
+                                            )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </>
                               )}
                             </td>
                           </tr>
@@ -1827,7 +1876,8 @@ export default function AdminDashboardPage() {
             : ""
         }
         footer={
-          timelineDrawerBooking && (
+          timelineDrawerBooking &&
+          (isBookingModifiable(timelineDrawerBooking) ? (
             <div className="flex items-center justify-between w-full gap-2">
               <Button
                 variant="danger"
@@ -1850,7 +1900,23 @@ export default function AdminDashboardPage() {
                 <span>{t("แก้ไขเวลา", "Reschedule")}</span>
               </Button>
             </div>
-          )
+          ) : (
+            <div className="flex items-center justify-between w-full gap-2">
+              <span className="text-xs text-slate-500">
+                {t(
+                  "รายการจองนี้เสร็จสิ้นแล้ว ไม่สามารถแก้ไขหรือยกเลิกได้",
+                  "Completed bookings cannot be modified or cancelled."
+                )}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setTimelineDrawerBooking(null)}
+              >
+                {t("ปิด", "Close")}
+              </Button>
+            </div>
+          ))
         }
       >
         {timelineDrawerBooking && (

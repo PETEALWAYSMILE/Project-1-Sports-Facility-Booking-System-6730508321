@@ -161,10 +161,25 @@ app.use(rateLimit({
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:3000")
+  .split(",")
+  .map((u) => u.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.NODE_ENV === "production"
-    ? process.env.FRONTEND_URL
-    : "http://localhost:3000",
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const normalized = origin.replace(/\/+$/, "");
+    if (
+      process.env.NODE_ENV !== "production" ||
+      !process.env.FRONTEND_URL ||
+      allowedOrigins.includes("*") ||
+      allowedOrigins.includes(normalized)
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 

@@ -25,7 +25,7 @@ import {
   setCustomFacilityImage,
   useFavorites,
 } from "@/lib/ui-helpers";
-import TimeSlotGrid from "@/components/TimeSlotGrid";
+import TimeSlotGrid, { TIME_SLOTS_30M } from "@/components/TimeSlotGrid";
 import CourtCard from "@/components/CourtCard";
 import FacilityModal from "@/components/FacilityModal";
 import {
@@ -49,14 +49,13 @@ import {
   Trash2,
   Heart,
   ShieldCheck,
-  QrCode,
   Building2,
   CalendarPlus,
   ArrowRight,
   ChevronLeft,
 } from "lucide-react";
 
-type CheckoutStep = 1 | 2 | 3;
+type CheckoutStep = 1 | 2;
 
 export default function FacilityDetailPage() {
   const params = useParams();
@@ -86,13 +85,10 @@ export default function FacilityDetailPage() {
   const [durationHours, setDurationHours] = useState<number>(1);
   const [selectionError, setSelectionError] = useState<string | null>(null);
 
-  // 3-Step Booking Checkout Flow State
+  // 2-Step Booking Checkout Flow State (Review & Confirm -> Confirmed)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>(1);
   const [bookingNote, setBookingNote] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"promptpay" | "venue">(
-    "promptpay"
-  );
   const [submitting, setSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [createdBooking, setCreatedBooking] = useState<Booking | null>(null);
@@ -157,6 +153,56 @@ export default function FacilityDetailPage() {
   useEffect(() => {
     loadFacilityAndSlots();
   }, [loadFacilityAndSlots]);
+
+  // Auto-adjust default startTime if current selection is in the past today or occupied
+  useEffect(() => {
+    if (loading || !facility) return;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const [h, m] = (startTime || "10:00").split(":").map(Number);
+    const curStart = (Number.isFinite(h) ? h : 10) * 60 + (Number.isFinite(m) ? m : 0);
+    const curEnd = curStart + Number(durationHours) * 60;
+
+    const mySameDate = myBookings.filter(
+      (b) => b.bookingDate.slice(0, 10) === bookingDate
+    );
+    const isPastSlot = bookingDate === todayUtc && curStart <= currentMinutes;
+    const isBookedSlot =
+      availability.some(
+        (b) => b.startMinutes < curEnd && b.endMinutes > curStart
+      ) ||
+      mySameDate.some(
+        (b) => b.startMinutes < curEnd && b.endMinutes > curStart
+      );
+
+    if (isPastSlot || isBookedSlot) {
+      const firstOpen = TIME_SLOTS_30M.find((slot) => {
+        if (bookingDate === todayUtc && slot.startMin <= currentMinutes) {
+          return false;
+        }
+        const fitDur =
+          slot.startMin + Number(durationHours) * 60 <= 22 * 60
+            ? Number(durationHours)
+            : 0.5;
+        const slotEnd = slot.startMin + fitDur * 60;
+        const facBusy = availability.some(
+          (b) => b.startMinutes < slotEnd && b.endMinutes > slot.startMin
+        );
+        const usrBusy = mySameDate.some(
+          (b) => b.startMinutes < slotEnd && b.endMinutes > slot.startMin
+        );
+        return !facBusy && !usrBusy;
+      });
+
+      if (firstOpen) {
+        setStartTime(firstOpen.label);
+        if (firstOpen.startMin + Number(durationHours) * 60 > 22 * 60) {
+          setDurationHours(0.5);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, bookingDate, availability, myBookings]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -232,7 +278,9 @@ export default function FacilityDetailPage() {
     (b) => b.bookingDate.slice(0, 10) === bookingDate
   );
 
-  // Overlap checks
+  // Overlap & Time checks
+  const now = new Date();
+  const currentLocalMinutes = now.getHours() * 60 + now.getMinutes();
   const hasFacilityOverlap = availability.some(
     (b) => b.startMinutes < selectedEndMin && b.endMinutes > selectedStartMin
   );
@@ -241,13 +289,21 @@ export default function FacilityDetailPage() {
   );
   const isInvalidDuration = durationHours < 0.5 || durationHours > 2;
   const isPastDate = bookingDate < todayUtc;
-  const exceedsOperatingDay = selectedEndMin > 22 * 60;
+  const isPastTimeSlot =
+    bookingDate === todayUtc && selectedStartMin <= currentLocalMinutes;
+  const exceedsOperatingDay = selectedStartMin < 6 * 60 || selectedEndMin > 22 * 60;
 
   const validateSelection = (): string | null => {
     if (isPastDate) {
       return t(
         "ไม่สามารถจองวันที่ผ่านมาแล้วได้ กรุณาเลือกตั้งแต่วันนี้เป็นต้นไป",
         "Cannot book past dates. Please select today or a future date."
+      );
+    }
+    if (isPastTimeSlot) {
+      return t(
+        "ช่วงเวลาที่เลือกผ่านไปแล้วในวันนี้ กรุณาเลือกช่วงเวลาว่างถัดไปหรือเลือกวันพรุ่งนี้",
+        "Selected start time has already passed today. Please choose a future slot."
       );
     }
     if (isInvalidDuration) {
@@ -326,7 +382,7 @@ export default function FacilityDetailPage() {
         durationHours: Number(durationHours),
       });
       setCreatedBooking(res.data);
-      setCheckoutStep(3);
+      setCheckoutStep(2);
       await loadFacilityAndSlots();
     } catch (err: unknown) {
       const rawMsg =
@@ -684,7 +740,9 @@ export default function FacilityDetailPage() {
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div>
                 <h2 className="text-base sm:text-lg font-semibold text-slate-900">
-                  {t("เลือกวันและเวลาจองสนาม", "Select Date & Time Slot")}
+                  {user?.role === "admin"
+                    ? t("ตรวจสอบตารางเวลาสนาม (แอดมิน)", "Court Schedule Inspector (Admin)")
+                    : t("เลือกวันและเวลาจองสนาม", "Select Date & Time Slot")}
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   {t(
@@ -800,79 +858,129 @@ export default function FacilityDetailPage() {
               />
             </div>
 
-            {/* 3. Conflict / Validation Warning */}
-            {(selectionError ||
-              hasFacilityOverlap ||
-              hasMemberSelfOverlap ||
-              exceedsOperatingDay) && (
-              <div
-                role="alert"
-                className="flex items-start gap-2.5 p-3.5 rounded-control bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium"
-              >
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                <span>
-                  {selectionError ||
-                    (hasFacilityOverlap
-                      ? t(
-                          "ช่วงเวลาที่เลือกทับซ้อนกับคิวที่ถูกจองแล้ว กรุณาเลือกช่องเวลาสีขาวที่ว่างอยู่",
-                          "Selected time overlaps with an existing booking. Please choose an open slot."
-                        )
-                      : hasMemberSelfOverlap
-                      ? t(
-                          "คุณมีคิวจองสนามอื่นในช่วงเวลานี้อยู่แล้ว ไม่สามารถจองเวลาซ้อนกันได้",
-                          "You already have a booking on another court during this time."
-                        )
-                      : t(
-                          "เวลาสิ้นสุดต้องไม่เกินเวลาปิดสนาม 22:00 น.",
-                          "Booking must end by 22:00 closing time."
-                        ))}
-                </span>
+            {user?.role === "admin" ? (
+              <div className="p-4 rounded-card bg-[#F6F5F0] border border-[#E2DFD7] space-y-3">
+                <div className="flex items-start gap-2.5 text-xs text-[#4A4F4B]">
+                  <ShieldCheck className="w-4 h-4 text-[#143628] shrink-0 mt-0.5" />
+                  <span>
+                    {t(
+                      "คุณกำลังเข้าชมในฐานะผู้ดูแลระบบ สามารถตรวจสอบช่วงเวลาที่ถูกจองได้จากตารางด้านบน หรือจัดการการจองทั้งหมดได้ที่หน้าผู้ดูแลระบบ",
+                      "You are viewing as an Administrator. Inspect slot availability above or manage reservations in the Admin Panel."
+                    )}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    fullWidth
+                    onClick={() => setIsEditModalOpen(true)}
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>{t("แก้ไขข้อมูลสนาม", "Edit Court")}</span>
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    onClick={() => router.push("/admin")}
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>{t("ไปหน้าจัดการระบบ", "Admin Panel")}</span>
+                  </Button>
+                </div>
               </div>
+            ) : (
+              <>
+                {/* 3. Conflict / Validation Warning */}
+                {(selectionError ||
+                  isPastDate ||
+                  isPastTimeSlot ||
+                  hasFacilityOverlap ||
+                  hasMemberSelfOverlap ||
+                  exceedsOperatingDay) && (
+                  <div
+                    role="alert"
+                    className="flex items-start gap-2.5 p-3.5 rounded-control bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium"
+                  >
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <span>
+                      {selectionError ||
+                        (isPastDate
+                          ? t(
+                              "ไม่สามารถจองวันที่ผ่านมาแล้วได้ กรุณาเลือกตั้งแต่วันนี้เป็นต้นไป",
+                              "Cannot book past dates."
+                            )
+                          : isPastTimeSlot
+                          ? t(
+                              "ช่วงเวลาที่เลือกผ่านไปแล้วในวันนี้ กรุณาคลิกเลือกช่องเวลาสีขาวที่ว่างอยู่หรือเลือกวันถัดไป",
+                              "Selected time has already passed today. Please choose an open slot or a future date."
+                            )
+                          : hasFacilityOverlap
+                          ? t(
+                              "ช่วงเวลาที่เลือกทับซ้อนกับคิวที่ถูกจองแล้ว กรุณาเลือกช่องเวลาสีขาวที่ว่างอยู่",
+                              "Selected time overlaps with an existing booking. Please choose an open slot."
+                            )
+                          : hasMemberSelfOverlap
+                          ? t(
+                              "คุณมีคิวจองสนามอื่นในช่วงเวลานี้อยู่แล้ว ไม่สามารถจองเวลาซ้อนกันได้",
+                              "You already have a booking on another court during this time."
+                            )
+                          : t(
+                              "เวลาสิ้นสุดต้องไม่เกินเวลาปิดสนาม 22:00 น.",
+                              "Booking must end by 22:00 closing time."
+                            ))}
+                    </span>
+                  </div>
+                )}
+
+                {/* 4. Price Summary Box */}
+                <div className="p-4 rounded-control bg-slate-50 border border-slate-200 space-y-2 text-xs sm:text-sm">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>{t("วันที่และเวลา", "Selected Slot")}</span>
+                    <span className="font-semibold text-slate-900 tabular-price">
+                      {startTime} – {endTimeFormatted} {t("น.", "")}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-600">
+                    <span>{t("ระยะเวลาใช้งาน", "Duration")}</span>
+                    <span className="font-medium text-slate-900 tabular-price">
+                      {durationHours} {t("ชั่วโมง", "hours")}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
+                    <span className="font-semibold text-slate-900">
+                      {t("ราคารวมสุทธิ (ชำระหน้าสนาม)", "Total (Pay at Venue)")}
+                    </span>
+                    <span className="text-xl font-semibold text-primary tabular-price">
+                      ฿{totalPrice.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 5. Primary CTA Button */}
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={
+                    isPastDate ||
+                    isPastTimeSlot ||
+                    hasFacilityOverlap ||
+                    hasMemberSelfOverlap ||
+                    exceedsOperatingDay
+                  }
+                  onClick={handleStartBookingFlow}
+                >
+                  <span>
+                    {!user
+                      ? t("เข้าสู่ระบบเพื่อจองสนามนี้", "Log In to Book This Court")
+                      : t("จองสนามนี้", "Book This Court")}
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </>
             )}
-
-            {/* 4. Price Summary Box */}
-            <div className="p-4 rounded-control bg-slate-50 border border-slate-200 space-y-2 text-xs sm:text-sm">
-              <div className="flex items-center justify-between text-slate-600">
-                <span>{t("วันที่และเวลา", "Selected Slot")}</span>
-                <span className="font-semibold text-slate-900 tabular-price">
-                  {startTime} – {endTimeFormatted} {t("น.", "")}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-slate-600">
-                <span>{t("ระยะเวลาใช้งาน", "Duration")}</span>
-                <span className="font-medium text-slate-900 tabular-price">
-                  {durationHours} {t("ชั่วโมง", "hours")}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
-                <span className="font-semibold text-slate-900">
-                  {t("ราคารวมสุทธิ", "Total Price")}
-                </span>
-                <span className="text-xl font-semibold text-primary tabular-price">
-                  ฿{totalPrice.toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            {/* 5. Primary CTA Button */}
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              disabled={
-                hasFacilityOverlap ||
-                hasMemberSelfOverlap ||
-                exceedsOperatingDay
-              }
-              onClick={handleStartBookingFlow}
-            >
-              <span>
-                {!user
-                  ? t("เข้าสู่ระบบเพื่อจองสนามนี้", "Log In to Book This Court")
-                  : t("จองสนามนี้", "Book This Court")}
-              </span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </div>
@@ -912,33 +1020,42 @@ export default function FacilityDetailPage() {
         </section>
       )}
 
-      {/* Mobile Sticky Bottom Booking Bar */}
-      <div className="lg:hidden fixed bottom-14 inset-x-0 z-30 bg-white border-t border-slate-200 px-4 py-3 flex items-center justify-between gap-4 shadow-elevated">
-        <div>
-          <div className="text-xs text-slate-500 tabular-price">
-            {startTime} - {endTimeFormatted} ({durationHours} {t("ชม.", "hr")})
+      {/* Mobile Sticky Bottom Booking Bar (Members & Guests only) */}
+      {user?.role !== "admin" && (
+        <div className="lg:hidden fixed bottom-14 inset-x-0 z-30 bg-white border-t border-slate-200 px-4 py-3 flex items-center justify-between gap-4 shadow-elevated">
+          <div>
+            <div className="text-xs text-slate-500 tabular-price">
+              {startTime} - {endTimeFormatted} ({durationHours} {t("ชม.", "hr")})
+            </div>
+            <div className="text-lg font-semibold text-primary tabular-price">
+              ฿{totalPrice.toLocaleString()}
+            </div>
           </div>
-          <div className="text-lg font-semibold text-primary tabular-price">
-            ฿{totalPrice.toLocaleString()}
-          </div>
-        </div>
-        <Button
-          variant="primary"
-          onClick={() => {
-            const err = validateSelection();
-            if (err) {
-              bookingBoxRef.current?.scrollIntoView({ behavior: "smooth" });
-              setSelectionError(err);
-            } else {
-              handleStartBookingFlow();
+          <Button
+            variant="primary"
+            disabled={
+              isPastDate ||
+              isPastTimeSlot ||
+              hasFacilityOverlap ||
+              hasMemberSelfOverlap ||
+              exceedsOperatingDay
             }
-          }}
-        >
-          {t("จองสนามนี้", "Book Now")}
-        </Button>
-      </div>
+            onClick={() => {
+              const err = validateSelection();
+              if (err) {
+                bookingBoxRef.current?.scrollIntoView({ behavior: "smooth" });
+                setSelectionError(err);
+              } else {
+                handleStartBookingFlow();
+              }
+            }}
+          >
+            {t("จองสนามนี้", "Book Now")}
+          </Button>
+        </div>
+      )}
 
-      {/* Section 5: 3-Step Booking Checkout Modal (ตรวจสอบรายการ > ชำระเงิน > ยืนยัน) */}
+      {/* Section 5: 2-Step Booking Checkout Modal (ตรวจสอบรายการ > ยืนยันการจองสำเร็จ) */}
       <Modal
         isOpen={isCheckoutOpen}
         onClose={() => {
@@ -946,23 +1063,20 @@ export default function FacilityDetailPage() {
         }}
         title={
           checkoutStep === 1
-            ? t("ตรวจสอบรายการจอง", "Review Your Booking")
-            : checkoutStep === 2
-            ? t("เลือกวิธีชำระเงิน", "Payment Method")
+            ? t("ตรวจสอบรายการและยืนยันการจอง", "Review & Confirm Booking")
             : t("จองสนามกีฬาสำเร็จ", "Booking Confirmed")
         }
         maxWidth="max-w-lg"
       >
         <div className="space-y-6">
-          {/* 3-Step Stepper Indicator */}
+          {/* 2-Step Stepper Indicator */}
           <ol
             aria-label={t("ขั้นตอนการจอง", "Booking progress")}
-            className="grid grid-cols-3 gap-2 pb-4 border-b border-slate-200 text-xs"
+            className="grid grid-cols-2 gap-2 pb-4 border-b border-slate-200 text-xs"
           >
             {[
-              { step: 1, label: t("1. ตรวจสอบรายการ", "1. Review") },
-              { step: 2, label: t("2. ชำระเงิน", "2. Payment") },
-              { step: 3, label: t("3. ยืนยัน", "3. Confirmed") },
+              { step: 1, label: t("1. ตรวจสอบรายการจอง", "1. Review Details") },
+              { step: 2, label: t("2. จองสำเร็จ", "2. Confirmed") },
             ].map((item) => {
               const active = checkoutStep === item.step;
               const done = checkoutStep > item.step;
@@ -1012,7 +1126,7 @@ export default function FacilityDetailPage() {
             </div>
           )}
 
-          {/* STEP 1: Review Details */}
+          {/* STEP 1: Review Details & Confirm Directly */}
           {checkoutStep === 1 && (
             <div className="space-y-4">
               {/* Court Summary Card */}
@@ -1062,10 +1176,29 @@ export default function FacilityDetailPage() {
                   </span>
                 </div>
                 <div className="p-3.5 flex justify-between bg-slate-50/70 font-semibold text-slate-900">
-                  <span>{t("ยอดชำระสุทธิ", "Total Amount")}</span>
+                  <span>{t("ยอดชำระหน้าสนาม", "Amount Due at Venue")}</span>
                   <span className="text-base text-primary tabular-price">
                     ฿{totalPrice.toLocaleString()}
                   </span>
+                </div>
+              </div>
+
+              {/* Pay at Venue Notice */}
+              <div className="p-3.5 rounded-control bg-[#EBF2EE] border border-[#C5D9CE] text-[#143628] text-xs flex items-start gap-2.5">
+                <Building2 className="w-4 h-4 text-[#143628] shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-semibold">
+                    {t(
+                      "ชำระเงินที่เคาน์เตอร์หน้าสนาม",
+                      "Pay at the Venue Reception"
+                    )}
+                  </div>
+                  <p className="text-[#4A4F4B] mt-0.5">
+                    {t(
+                      "ระบบจะล็อกคิวสนามให้ทันทีเมื่อกดยืนยัน และสามารถชำระค่าบริการได้ที่หน้าสนามก่อนเวลาเข้าเล่น 15 นาที",
+                      "Your court slot is locked immediately upon confirmation. Please pay at the reception desk 15 minutes before play."
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -1100,7 +1233,7 @@ export default function FacilityDetailPage() {
                 </div>
                 <p>
                   {t(
-                    "สามารถแก้ไขวัน-เวลา หรือยกเลิกการจองล่วงหน้าได้ฟรีผ่านหน้า 'การจองของฉัน' ก่อนถึงเวลาเข้าใช้สนาม",
+                    "สามารถแก้ไขวัน-เวลา หรือยกเลิกการจองล่วงหน้าได้ฟรีผ่านหน้า 'การจองของฉัน' ก่อนถึงเวลาเริ่มใช้งาน",
                     "Free rescheduling or cancellation before your scheduled slot starts."
                   )}
                 </p>
@@ -1110,99 +1243,9 @@ export default function FacilityDetailPage() {
                 <Button
                   variant="secondary"
                   onClick={() => setIsCheckoutOpen(false)}
-                >
-                  {t("ย้อนกลับ", "Back")}
-                </Button>
-                <Button variant="primary" onClick={() => setCheckoutStep(2)}>
-                  <span>{t("ดำเนินการต่อ", "Continue to Payment")}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Payment Box */}
-          {checkoutStep === 2 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("promptpay")}
-                  className={`p-3.5 rounded-control border text-left transition-colors flex items-start gap-3 ${
-                    paymentMethod === "promptpay"
-                      ? "bg-primary-light border-primary text-slate-900"
-                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  <QrCode className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-sm font-semibold">
-                      {t("สแกน QR พร้อมเพย์", "Thai QR PromptPay")}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      {t("ยืนยันยอดอัตโนมัติทันที", "Instant confirmation")}
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("venue")}
-                  className={`p-3.5 rounded-control border text-left transition-colors flex items-start gap-3 ${
-                    paymentMethod === "venue"
-                      ? "bg-primary-light border-primary text-slate-900"
-                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  <Building2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-sm font-semibold">
-                      {t("ชำระที่หน้าสนาม", "Pay at Venue")}
-                    </div>
-                    <div className="text-xs text-slate-500">
-                      {t("ชำระก่อนเข้าสนาม 15 นาที", "Pay at reception desk")}
-                    </div>
-                  </div>
-                </button>
-              </div>
-
-              <div className="p-5 rounded-card bg-slate-50 border border-slate-200 text-center space-y-3">
-                {paymentMethod === "promptpay" ? (
-                  <>
-                    <div className="w-32 h-32 mx-auto rounded-card bg-white border border-slate-200 flex items-center justify-center p-3 shadow-soft">
-                      <QrCode className="w-24 h-24 text-slate-800" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <div className="text-xs text-slate-500">
-                        {t("ยอดชำระทั้งสิ้น", "Amount Due")}
-                      </div>
-                      <div className="text-2xl font-semibold text-primary tabular-price">
-                        ฿{totalPrice.toLocaleString()}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="py-3 space-y-1">
-                    <div className="text-sm font-semibold text-slate-900">
-                      {t(
-                        "ล็อกคิวสนามทันที และชำระเงินที่เคาน์เตอร์หน้าสนาม",
-                        "Lock your court now and pay at the venue counter"
-                      )}
-                    </div>
-                    <div className="text-xl font-semibold text-primary tabular-price">
-                      ฿{totalPrice.toLocaleString()}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between gap-2.5 pt-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => setCheckoutStep(1)}
                   disabled={submitting}
                 >
-                  {t("ย้อนกลับ", "Back")}
+                  {t("ยกเลิก", "Cancel")}
                 </Button>
                 <Button
                   variant="primary"
@@ -1216,8 +1259,8 @@ export default function FacilityDetailPage() {
             </div>
           )}
 
-          {/* STEP 3: Confirmed Success */}
-          {checkoutStep === 3 && createdBooking && (
+          {/* STEP 2: Confirmed Success */}
+          {checkoutStep === 2 && createdBooking && (
             <div className="text-center space-y-5 py-2">
               <div className="w-14 h-14 rounded-xl bg-[#EBF2EE] text-[#143628] flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8" />
@@ -1257,9 +1300,17 @@ export default function FacilityDetailPage() {
                     {t("ชม.", "hrs")})
                   </span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">
+                    {t("การชำระเงิน", "Payment")}
+                  </span>
+                  <span className="font-medium text-slate-800">
+                    {t("ชำระที่หน้าสนาม", "Pay at Venue")}
+                  </span>
+                </div>
                 <div className="flex justify-between pt-2 border-t border-slate-200 font-semibold">
                   <span className="text-slate-900">
-                    {t("ยอดรวมสุทธิ", "Total Paid")}
+                    {t("ยอดชำระหน้าสนาม", "Total Due at Venue")}
                   </span>
                   <span className="text-primary tabular-price">
                     ฿{totalPrice.toLocaleString()}

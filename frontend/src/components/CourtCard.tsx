@@ -185,7 +185,9 @@ export default function CourtCard({
               href={detailHref}
               className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 rounded-lg bg-[#143628] hover:bg-[#1B4534] active:bg-[#0E271D] text-white text-sm font-medium transition-colors shadow-soft"
             >
-              {t("จองสนาม", "Book Court")}
+              {adminActions
+                ? t("ดูตารางสนาม", "View Court")
+                : t("จองสนาม", "Book Court")}
             </Link>
           </div>
         </div>

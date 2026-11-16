@@ -16,7 +16,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Trophy,
-  Shield,
 } from "lucide-react";
 
 export default function RegisterPage() {
@@ -27,7 +26,6 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [tel, setTel] = useState("");
-  const [role, setRole] = useState<"member" | "admin">("member");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -76,18 +74,14 @@ export default function RegisterPage() {
 
     try {
       setLoading(true);
-      const newUser = await register({
+      await register({
         name: name.trim(),
         email: email.trim(),
         tel: tel.trim(),
-        role,
+        role: "member",
         password,
       });
-      if (newUser.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
+      router.push("/");
     } catch (err: unknown) {
       setErrors({
         form:
@@ -218,56 +212,6 @@ export default function RegisterPage() {
                   leftIcon={<Phone className="w-4 h-4" />}
                   error={errors.tel}
                 />
-              </div>
-
-              {/* Account Type Selection */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-[#181A18]">
-                  {t("ประเภทบัญชีผู้ใช้งาน", "Account Type")}
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRole("member")}
-                    aria-pressed={role === "member"}
-                    className={`min-h-[48px] p-3 rounded-lg border text-left transition-colors flex items-center gap-2.5 ${
-                      role === "member"
-                        ? "bg-[#EBF2EE] border-[#143628] text-[#181A18] shadow-soft"
-                        : "bg-white border-[#D2CEC3] text-[#4A4F4B] hover:bg-[#F6F5F0]"
-                    }`}
-                  >
-                    <UserIcon className="w-4 h-4 text-[#143628] shrink-0" />
-                    <div>
-                      <div className="text-xs font-semibold">
-                        {t("สมาชิกทั่วไป", "Member")}
-                      </div>
-                      <div className="text-[11px] text-[#767B76]">
-                        {t("ค้นหาและจองสนาม", "Book courts")}
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setRole("admin")}
-                    aria-pressed={role === "admin"}
-                    className={`min-h-[48px] p-3 rounded-lg border text-left transition-colors flex items-center gap-2.5 ${
-                      role === "admin"
-                        ? "bg-[#EBF2EE] border-[#143628] text-[#181A18] shadow-soft"
-                        : "bg-white border-[#D2CEC3] text-[#4A4F4B] hover:bg-[#F6F5F0]"
-                    }`}
-                  >
-                    <Shield className="w-4 h-4 text-[#143628] shrink-0" />
-                    <div>
-                      <div className="text-xs font-semibold">
-                        {t("ผู้ดูแลสนาม", "Venue Admin")}
-                      </div>
-                      <div className="text-[11px] text-[#767B76]">
-                        {t("จัดการสนามและคิว", "Manage venue")}
-                      </div>
-                    </div>
-                  </button>
-                </div>
               </div>
 
               <Input

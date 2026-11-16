@@ -284,11 +284,18 @@ export function getBookingComputedStatus(
   if (datePart === todayStr) {
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    if (booking.endMinutes <= currentMinutes) {
+    if (booking.startMinutes <= currentMinutes) {
       return "completed";
     }
   }
   return "confirmed";
+}
+
+export function isBookingModifiable(
+  booking: (Booking & { isCancelled?: boolean }) | null | undefined
+): boolean {
+  if (!booking || booking.isCancelled) return false;
+  return getBookingComputedStatus(booking) === "confirmed";
 }
 
 // Format YYYY-MM-DD to readable Thai/English date

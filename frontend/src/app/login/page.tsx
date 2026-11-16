@@ -15,7 +15,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Trophy,
-  UserCheck,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -242,57 +241,6 @@ export default function LoginPage() {
                   : t("เข้าสู่ระบบ", "Log In")}
               </Button>
             </form>
-
-            {/* Quick-Access Account Switcher */}
-            <div className="pt-4 border-t border-[#EFECE6] space-y-2.5">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-[#767B76]">
-                <UserCheck className="w-3.5 h-3.5 text-[#143628]" />
-                <span>
-                  {t(
-                    "เข้าใช้งานด่วนด้วยบัญชีสาธิต:",
-                    "Quick sign-in with sample accounts:"
-                  )}
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail("member1@sportbooking.com");
-                    setPassword("password123");
-                    setEmailError(null);
-                    setPasswordError(null);
-                  }}
-                  className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#D2CEC3] bg-[#F6F5F0] hover:bg-[#EBF2EE] hover:border-[#143628] text-xs font-medium text-[#181A18] hover:text-[#143628] transition-colors text-center"
-                >
-                  {t("สมาชิก 1", "Member 1")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail("member2@sportbooking.com");
-                    setPassword("password123");
-                    setEmailError(null);
-                    setPasswordError(null);
-                  }}
-                  className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#D2CEC3] bg-[#F6F5F0] hover:bg-[#EBF2EE] hover:border-[#143628] text-xs font-medium text-[#181A18] hover:text-[#143628] transition-colors text-center"
-                >
-                  {t("สมาชิก 2", "Member 2")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEmail("admin@sportbooking.com");
-                    setPassword("password123");
-                    setEmailError(null);
-                    setPasswordError(null);
-                  }}
-                  className="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-[#D2CEC3] bg-[#F6F5F0] hover:bg-[#EBF2EE] hover:border-[#143628] text-xs font-medium text-[#181A18] hover:text-[#143628] transition-colors text-center"
-                >
-                  {t("ผู้ดูแลสนาม", "Admin")}
-                </button>
-              </div>
-            </div>
 
             <p className="text-center text-sm text-[#767B76] pt-2">
               {t("ยังไม่มีบัญชีสมาชิก?", "Don't have an account?")}{" "}

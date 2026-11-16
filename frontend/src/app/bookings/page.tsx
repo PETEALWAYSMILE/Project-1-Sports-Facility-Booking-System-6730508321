@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Booking, BookingInput, Facility } from "@/types";
 import { api, formatMinutesToTime } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -13,6 +14,7 @@ import {
   getBookingComputedStatus,
   getCancelledBookings,
   getFacilityPrimaryImage,
+  isBookingModifiable,
   saveCancelledBooking,
   useFavorites,
 } from "@/lib/ui-helpers";
@@ -55,6 +57,7 @@ type PageTab = "upcoming" | "completed" | "cancelled" | "favorites" | "profile";
 export default function BookingsPage() {
   const { user, loading: authLoading } = useAuth();
   const { lang, t } = useLanguage();
+  const router = useRouter();
   const userId = user?._id || user?.id;
   const { favoriteIds, toggleFavorite, isFavorite } = useFavorites(userId);
 
@@ -121,6 +124,10 @@ export default function BookingsPage() {
   }, [user, t]);
 
   useEffect(() => {
+    if (!authLoading && user?.role === "admin") {
+      router.replace("/admin");
+      return;
+    }
     if (!authLoading && user) {
       fetchData();
       const uid = user._id || user.id;
@@ -134,7 +141,7 @@ export default function BookingsPage() {
     } else if (!authLoading && !user) {
       setLoading(false);
     }
-  }, [authLoading, user, fetchData]);
+  }, [authLoading, user, fetchData, router]);
 
   // Split bookings by status: upcoming, completed, cancelled
   const categorizedBookings = useMemo(() => {
@@ -267,6 +274,10 @@ export default function BookingsPage() {
       );
     }, 350);
   };
+
+  if (!authLoading && user?.role === "admin") {
+    return null;
+  }
 
   if (!authLoading && !user) {
     return (
@@ -700,7 +711,7 @@ export default function BookingsPage() {
                       <span>{t("ดูรายละเอียด", "View Details")}</span>
                     </Button>
 
-                    {status === "confirmed" && !booking.isCancelled && (
+                    {isBookingModifiable(booking) && (
                       <>
                         <Button
                           variant="ghost"
