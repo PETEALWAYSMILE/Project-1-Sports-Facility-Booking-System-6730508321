@@ -13,65 +13,24 @@
 - **Official Figma / FigJam Board**: [Project 1 - UI Flow Design (SportArenaHub)](https://www.figma.com/board/nBTXfvqdUDtgWkKxefCg2z/Project-1---UI-Flow-Design?node-id=0-1&t=tl3LUihAJPVZ5cwo-1)
 - **Interactive Local Viewer**: [`docs/ui-flow-viewer.html`](docs/ui-flow-viewer.html)
 
-### ตารางจับคู่เกณฑ์การให้คะแนนกับหน้าจอ UI Flow (Grading Rubric Mapping)
+### ตารางจับคู่เกณฑ์การให้คะแนนกับหน้าจอ Click Flow บน FigJam (14 หัวข้อหลัก)
 
-| ลำดับ | หัวข้อตามเกณฑ์การให้คะแนน (ภาษาไทย) | Function Specification (EN) | คะแนน | หน้าจออ้างอิงบน FigJam Board (Screen ID) |
+| ลำดับ | หัวข้อตามเกณฑ์การให้คะแนน | Function Specification (EN) | คะแนน | หน้าจอบน FigJam Board (Click Flow) |
 |---|---|---|---|---|
-| **1** | User ทั่วไปลงทะเบียน | **User Registration + Validation Check** | 2 | **2.2** Sign-Up Screen (`/register`) |
-| **2** | User ทั่วไป log-in | **User Log-in** | 1 | **2.0** Sign-In Screen (`/login` — Member Role) |
-| **3** | User ทั่วไปเข้า View Product/Item | **User View Product/Item** | 1 | **1.0** Facility Catalog Hub (`/`) & **3.0** Court Detail (`/facilities/[id]`) |
-| **4** | User ทั่วไปสร้าง Booking/Request/Order | **User Create Booking/Request/Order** | 2 | **3.0** Select Slot → **3.1** Review & Confirm → **3.2** Booking Confirmed |
-| **5** | + ทดลองการสร้างไม่ตรงเงื่อนไข | **Check Create Condition** | 1 | **3.0B** Check Create Condition (6-Rule Guard & HTTP `400`/`409` Reject) |
-| **6** | แสดง Booking/Request/Order ที่สร้างไว้ | **User View Own Booking/Request/Order** | 2 | **4.0** My Bookings Hub (`/bookings`) & **4.1** Booking QR Pass Modal |
-| **7** | User ทั่วไป update Booking/Request/Order | **User Edit Own Booking/Request/Order** | 2 | **4.0** Click Reschedule → **4.2** Reschedule Booking Modal (`PUT /bookings/:id`) |
-| **8** | User ทั่วไป delete Booking/Request/Order | **User Delete Own Booking/Request/Order** | 2 | **4.0** Click Cancel → **4.3** Cancel Reservation Dialog (`DELETE /bookings/:id`) |
-| **9** | User ทั่วไป log-out | **User Log-out** | 1 | **2.3** User Log-out Menu & Session Clear (`GET /auth/logout` + `clearStoredAuth()`) |
-| **10** | Admin log-in | **Admin Log-in** | - | **2.0** Sign-In Screen (`role === "admin"`) → **5.0** Admin Dashboard (`/admin`) |
-| **11** | แสดง Booking ที่มีการสร้างเอาไว้ | **Admin View Any Booking** | 2 | **5.1** Court Schedule Timeline & **5.2** Manage All Bookings Table → **4.1** |
-| **12** | Admin Update Booking | **Admin Edit Any Booking** | 2 | **5.2** Row Action (`•••`) → **4.2** Reschedule Modal (`PUT /bookings/:id`) |
-| **13** | Admin Delete Booking | **Admin Delete Any Booking** | 1 | **5.2** Row Action (`•••`) → **4.3** Cancel Dialog (`DELETE /bookings/:id`) |
-| **14** | Admin Create Product/Item | **Admin Create New Product/Item** | 1 | **5.3** Manage Sports Courts → **5.4** Add / Edit Court Modal (`POST /facilities`) |
-| **★** | **Additional Functionality (Extra Credits)** | **Extra Features Beyond Core Spec** | Extra | **1.1** Filter Drawer, **1.2** Policy Modal, **2.1** Reset Password, **4.1** QR/Print/GCal, **4.4** Profile & Favorites, **5.0–5.5** Admin 6-Module Suite |
-
-### Standard UI Flow Notation Legend
-
-| Shape & Color | UI Flow Role | Description |
-|---|---|---|
-| **Stadium (`([ ])`) — Green** | **Entry / Terminal State** | Actor entry point, active session state, or post-auth redirect target |
-| **Rectangle (`[ ]`) — Light Blue** | **Screen / Route View** | Next.js App Router pages (`/`, `/login`, `/register`, `/facilities/[id]`, `/bookings`, `/admin`) |
-| **Rounded (`( )`) — Light Violet** | **Overlay Component** | Modal, Drawer, or ConfirmDialog UI layer |
-| **Rectangle (`[ ]`) — White** | **User Action / UI Control** | Form input, search/filter bar, tab switch, or primary CTA click |
-| **Subroutine (`[[ ]]`) — Light Teal** | **API Request / Client Storage** | Express REST endpoint call or `sessionStorage` / `localStorage` persistence |
-| **Diamond (`{ }`) — Light Yellow** | **Decision / Validation Gate** | Client validation rule, role guard, or backend conflict check |
-| **Rectangle (`[ ]`) — Light Green** | **Success / Confirmed State** | HTTP `200`/`201` mutation response, toast notification, or confirmed view |
-| **Rectangle (`[ ]`) — Light Red** | **Error / Conflict State** | Inline validation alert, HTTP `400`/`401`/`403`/`409` error, or fallback state |
-
-### Visual UI Wireflow Screen Index (Screens 1.0 – 5.5 on FigJam Board)
-
-| Screen ID | Rubric Badge | Screen / Overlay Name | Route / Component | Element-Level Triggers (`●───►`) |
-|---|---|---|---|---|
-| **1.0** | `[#3 View Product/Item]` | **Facility Catalog Hub** *(Primary Hub + Grid)* | `/` (`HomePage` + `Navbar`) | `Navbar: Log In` → **2.0** \| `Filter & Sort` → **1.1** \| `Booking Policy` → **1.2** \| `Select Court Card` → **3.0** |
-| **1.1** | `[★ Extra Credit]` | **Filter & Sort Drawer** | `HomePage` (`filterDrawerOpen`) | Sort radio options (`Name`, `Price`, `Capacity`), Max Hourly Rate slider (`฿100–฿2,000`), `Show Courts` → **1.0** |
-| **1.2** | `[★ Extra Credit]` | **Booking Policy Modal** | `HomePage` (`rulesModalOpen`) | Displays 3 core reservation policies (`>= Today`, `0.5–2.0h`, `Overlap Protection`) |
-| **2.0** | `[#2 User Log-in & #10 Admin Log-in]` | **Sign-In Screen** | `/login` (`LoginPage`) | `Forgot password?` → **2.1** \| `Sign Up` → **2.2** \| `Log In (Member)` → **1.0** / **3.0** \| `Role: Admin` → **5.0** |
-| **2.1** | `[★ Extra Credit]` | **Reset Password Modal** | `LoginPage` (`forgotModalOpen`) | Registered email input → `Send Reset Link` → Confirmation banner |
-| **2.2** | `[#1 User Registration + Validation]` | **Sign-Up Screen** | `/register` (`RegisterPage`) | `Name`, `Email`, `Tel (>=9)`, `Password (>=6)` → `Create Account (POST /auth/register)` → **1.0** |
-| **2.3** | `[#9 User Log-out]` | **User Log-out Menu & Session Clear** | `Navbar.tsx` (`handleLogout`) | `Log Out` → `GET /api/v1/auth/logout` + `clearStoredAuth()` (`sessionStorage` & `localStorage`) → **2.0** |
-| **3.0** | `[#3 View Product & #4 Create Booking]` | **Court Detail & Schedule** *(+ Amenities)* | `/facilities/[id]` (`TimeSlotGrid`) | `Guest: Save Draft` → **2.0** \| `Invalid Slot / Rule` → **3.0B** \| `Member: Book This Court` → **3.1** |
-| **3.0B** | `[#5 Check Create Condition]` | **Check Create Condition (Validation)** | `FacilityDetailPage` + `TimeSlotGrid` | Tests 4 core violations (`Past Date`, `> 2.0 hrs`, `Court Overlap 409`, `Member Overlap 409`) → Fix slot → **3.1** |
-| **3.1** | `[#4 User Create Booking — Step 1]` | **Checkout Step 1: Review & Confirm** | `Modal` (`checkoutStep === 1`) | Court summary, fee breakdown (`Pay at Venue`), optional note → `Confirm Booking (POST /bookings)` → **3.2** |
-| **3.2** | `[#4 User Create Booking — Step 2]` | **Checkout Step 2: Booking Confirmed** | `Modal` (`checkoutStep === 2`, HTTP 201) | Generates `SAH-XXXXXX` ref → `My Bookings` → **4.0** \| `+ Add to Google Calendar` \| `Browse More` → **1.0** |
-| **4.0** | `[#6 User View Own Booking]` | **My Bookings & Account Hub** *(5 Tabs)* | `/bookings` (`BookingsPage`) | `View Details` → **4.1** \| `Reschedule` → **4.2** \| `Cancel` → **4.3** \| `Profile & Saved` → **4.4** \| `Log Out` → **2.3** |
-| **4.1** | `[#6 View Booking & ★ Extra Credit]` | **Booking QR Pass Modal** | `BookingPassModal.tsx` | Displays `SAH-XXXXXX`, `StatusPill`, **QR Code**, `Print Receipt (window.print)`, `+ Google Calendar` |
-| **4.2** | `[#7 User Update & #12 Admin Edit]` | **Reschedule Slot Modal** | `BookingEditModal.tsx` | Locked court/sport banner, new date + `TimeSlotGrid` → `Save Changes (PUT /bookings/:id)` |
-| **4.3** | `[#8 User Delete & #13 Admin Delete]` | **Cancel Booking Dialog** | `ConfirmDialog` (`DELETE`) | Reopening policy notice → `Confirm Cancel (DELETE /bookings/:id + saveCancelledBooking)` |
-| **4.4** | `[★ Extra Credit]` | **Profile & Saved Courts Modal / Tab** | `ProfileFavoritesModal.tsx` | Personal Info (`Name`, `Tel`), Change Password (`>=6 chars`), and Saved Courts Grid (`useFavorites`) |
-| **5.0** | `[#10 Admin Log-in & ★ Analytics]` | **Admin Dashboard Hub** *(Primary Hub)* | `/admin` (`dashboard`) | 4 KPIs + 7-Day Revenue Bar Chart → `Timeline` → **5.1** \| `All Bookings` → **5.2** \| `Courts` → **5.3** \| `Members & Rules` → **5.5** |
-| **5.1** | `[#11 Admin View Any & ★ Timeline]` | **Schedule Timeline & Side Drawers** | `/admin` (`timeline` `06:00–22:00`) | `Booked Cell` → Details Drawer (**5.2** / Reschedule / Cancel) \| `Open Cell (+)` → `/facilities/[id]` (**3.0**) |
-| **5.2** | `[#11 View Any | #12 Edit | #13 Delete]` | **Manage All Bookings Table** *(Paginated)* | `/admin` (`bookings`) | `View QR Pass` → **4.1** \| `Admin Reschedule (PUT)` → **4.2** \| `Admin Cancel (DELETE)` → **4.3** |
-| **5.3** | `[#14 Admin Create Product & ★ CRUD]` | **Manage Sports Courts** *(Facility CRUD)* | `/admin` (`facilities`) | `+ Add / Edit Court` → **5.4** \| `Delete Court (DELETE /facilities/:id -> isActive: false)` |
-| **5.4** | `[#14 Admin Create New Product/Item]` | **Add / Edit Court Modal** | `FacilityModal.tsx` | `Name`, `5 Sport Selectors`, `Location`, `Capacity`, `Rate/Hr`, `Hours`, `Photo URL`, `Active Switch` → `POST / PUT /facilities` |
-| **5.5** | `[★ Extra Credit: Additional Func]` | **Members Directory & System Rules** | `/admin` (`users` & `settings`) | Aggregated member activity table (Bookings, Hours, Spend) + Active validation rules + `Log Out` → **2.3** |
+| **1** | User ทั่วไปลงทะเบียน | **User Registration + Validation Check** | 2 | **1. ลงทะเบียน (`/register`)** → กด `ลงทะเบียน` → หน้าแรก (`/`) |
+| **2** | User ทั่วไป log-in | **User Log-in** | 1 | **2. เข้าสู่ระบบ (`/login`)** → กด `เข้าสู่ระบบ` → หน้าแรก (`/`) |
+| **3** | User ทั่วไปเข้า View Product/Item | **User View Product/Item** | 1 | **3. ดูรายการสนามกีฬา (`/`)** → กด `จองสนาม` → **4. รายละเอียดสนาม (`/facilities/[id]`)** |
+| **4** | User ทั่วไปสร้าง Booking/Request/Order | **User Create Booking/Request/Order** | 2 | **4. เลือกวันและเวลา** → กด `จองสนามนี้` → **4. ยืนยันการจอง (Step 1/2)** → **4. จองสำเร็จ (Step 2/2)** |
+| **5** | + ทดลองการสร้างไม่ตรงเงื่อนไข | **Check Create Condition** | 1 | **5. ทดลองสร้างไม่ตรงเงื่อนไข (Error State)** — แสดงแถบแจ้งเตือนสีแดง + ปิดปุ่ม `จองสนามนี้` |
+| **6** | แสดง Booking/Request/Order ที่สร้างไว้ | **User View Own Booking/Request/Order** | 2 | **6–8. การจองของฉัน (`/bookings`)** — แสดงรายการจองของตนเอง (`กำลังจะมาถึง` / `เสร็จสิ้น` / `ยกเลิก`) |
+| **7** | User ทั่วไป update Booking/Request/Order | **User Edit Own Booking/Request/Order** | 2 | **6–8. การจองของฉัน** → กด `เลื่อนเวลา` → **7. แก้ไขการจอง (`BookingEditModal`)** |
+| **8** | User ทั่วไป delete Booking/Request/Order | **User Delete Own Booking/Request/Order** | 2 | **6–8. การจองของฉัน** → กด `ยกเลิก` → **8. ยกเลิกการจอง (`ConfirmDialog`)** |
+| **9** | User ทั่วไป log-out | **User Log-out** | 1 | กด `👤 สมชาย ▾` → **9. ออกจากระบบ (Navbar Menu)** → กด `ออกจากระบบ` → `/login` |
+| **10** | Admin log-in | **Admin Log-in** | - | **2. เข้าสู่ระบบ (`/login`)** → เข้าสู่ **10–13. แอดมินจัดการการจอง (`/admin`)** |
+| **11** | แสดง Booking ที่มีการสร้างเอาไว้ | **Admin View Any Booking** | 2 | **10–13. แอดมินจัดการการจอง (`/admin • จัดการการจอง`)** — แสดงรายการจองของสมาชิกทุกคน |
+| **12** | Admin Update Booking | **Admin Edit Any Booking** | 2 | กด `•••` → `แก้ไขวัน/เวลา` → **12. Admin แก้ไขการจอง (`BookingEditModal`)** |
+| **13** | Admin Delete Booking | **Admin Delete Any Booking** | 1 | กด `•••` → `ยกเลิกการจอง` → **13. Admin ลบการจอง (`ConfirmDialog`)** |
+| **14** | Admin Create Product/Item | **Admin Create New Product/Item** | 1 | เมนู `จัดการสนาม` → **14. แอดมินจัดการสนาม** → กด `+ เพิ่มสนาม` → **14. เพิ่มสนามกีฬาใหม่ (`FacilityModal`)** |
 
 ### Code-Accurate UI Flow & Wireflow Specification (4 Architectural Swimlanes)
 
