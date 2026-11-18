@@ -73,7 +73,14 @@ type AdminSection =
   | "users"
   | "settings";
 
+const TIMELINE_START_MIN = 6 * 60; // 06:00
+const TIMELINE_END_MIN = 22 * 60; // 22:00
+const TIMELINE_TOTAL_MIN = TIMELINE_END_MIN - TIMELINE_START_MIN; // 960 mins (16 hrs)
 const TIMELINE_HOURS = Array.from({ length: 16 }, (_, i) => 6 + i); // 06:00 to 21:00 (ends 22:00)
+const TIMELINE_HALF_HOURS = Array.from(
+  { length: 32 },
+  (_, i) => TIMELINE_START_MIN + i * 30
+); // 30-min grid slots from 06:00 to 21:30
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
@@ -99,7 +106,7 @@ export default function AdminDashboardPage() {
     useState<Booking | null>(null);
   const [emptySlotPrompt, setEmptySlotPrompt] = useState<{
     facility: Facility;
-    hour: number;
+    startMinutes: number;
   } | null>(null);
 
   // Bookings Management Table Filters & Pagination
@@ -1107,16 +1114,16 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="bg-white rounded-card border border-slate-200 shadow-soft overflow-x-auto">
-                <div className="min-w-[920px]">
+                <div className="min-w-[1244px]">
                   {/* Timeline Header Axis (06:00 - 22:00) */}
-                  <div className="grid grid-cols-[220px_repeat(16,minmax(44px,1fr))] border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-600">
+                  <div className="grid grid-cols-[220px_repeat(16,minmax(64px,1fr))] border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-600">
                     <div className="p-3 border-r border-slate-200">
                       {t("สนามกีฬา / เวลา", "Court / Hour")}
                     </div>
                     {TIMELINE_HOURS.map((hr) => (
                       <div
                         key={hr}
-                        className="p-2 text-center border-r border-slate-100 tabular-price"
+                        className="p-2 text-center border-r border-slate-200/80 last:border-r-0 tabular-price"
                       >
                         {String(hr).padStart(2, "0")}:00
                       </div>
@@ -1124,134 +1131,194 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* Grouped by Sport Type */}
-                  {facilitiesBySport.map((group) => (
-                    <div key={group.sportKey}>
-                      <div className="px-3 py-2 bg-slate-50/70 border-b border-slate-200 flex items-center gap-2 text-xs font-semibold text-slate-700">
-                        <SportBadge sportType={group.sportKey} />
-                        <span>
-                          ({group.courts.length} {t("สนาม", "courts")})
-                        </span>
-                      </div>
+                  {facilitiesBySport.map((group) => {
+                    const now = new Date();
+                    const currentLocalMins =
+                      now.getHours() * 60 + now.getMinutes();
 
-                      {group.courts.map((court) => {
-                        const courtBookingsOnDate = bookings.filter((b) => {
-                          const fId =
-                            typeof b.facility === "object"
-                              ? b.facility._id
-                              : b.facility;
+                    return (
+                      <div key={group.sportKey}>
+                        <div className="px-3 py-2 bg-slate-50/70 border-b border-slate-200 flex items-center gap-2 text-xs font-semibold text-slate-700">
+                          <SportBadge sportType={group.sportKey} />
+                          <span>
+                            ({group.courts.length} {t("สนาม", "courts")})
+                          </span>
+                        </div>
+
+                        {group.courts.map((court) => {
+                          const courtBookingsOnDate = bookings.filter((b) => {
+                            const fId =
+                              typeof b.facility === "object"
+                                ? b.facility._id
+                                : b.facility;
+                            return (
+                              fId === court._id &&
+                              b.bookingDate.slice(0, 10) === timelineDate
+                            );
+                          });
+
                           return (
-                            fId === court._id &&
-                            b.bookingDate.slice(0, 10) === timelineDate
-                          );
-                        });
-
-                        return (
-                          <div
-                            key={court._id}
-                            className="grid grid-cols-[220px_repeat(16,minmax(44px,1fr))] border-b border-slate-100 hover:bg-slate-50/40 relative"
-                          >
-                            {/* Court Name Cell */}
-                            <div className="p-3 border-r border-slate-200 flex flex-col justify-center">
-                              <div className="text-xs sm:text-sm font-medium text-slate-900 truncate">
-                                {court.name}
+                            <div
+                              key={court._id}
+                              className="grid grid-cols-[220px_1fr] border-b border-slate-100 hover:bg-slate-50/40"
+                            >
+                              {/* Court Name Cell */}
+                              <div className="p-3 border-r border-slate-200 flex flex-col justify-center">
+                                <div className="text-xs sm:text-sm font-medium text-slate-900 truncate">
+                                  {court.name}
+                                </div>
+                                <div className="text-[11px] text-slate-500 tabular-price">
+                                  ฿{court.hourlyRate}/{t("ชม.", "hr")}
+                                </div>
                               </div>
-                              <div className="text-[11px] text-slate-500 tabular-price">
-                                ฿{court.hourlyRate}/{t("ชม.", "hr")}
+
+                              {/* 32 Half-Hour Slots + Continuous Booking Bars */}
+                              <div className="relative grid grid-cols-[repeat(32,minmax(32px,1fr))] min-h-[58px]">
+                                {TIMELINE_HALF_HOURS.map((cellStartMin) => {
+                                  const cellEndMin = cellStartMin + 30;
+                                  const isHourEndBoundary =
+                                    cellStartMin % 60 === 30;
+                                  const borderClass = isHourEndBoundary
+                                    ? "border-r border-slate-200/80 last:border-r-0"
+                                    : "border-r border-dashed border-slate-100";
+
+                                  const isBookedCell =
+                                    courtBookingsOnDate.some(
+                                      (b) =>
+                                        b.startMinutes < cellEndMin &&
+                                        b.endMinutes > cellStartMin
+                                    );
+
+                                  if (isBookedCell) {
+                                    return (
+                                      <div
+                                        key={cellStartMin}
+                                        className={`min-h-[58px] ${borderClass}`}
+                                      />
+                                    );
+                                  }
+
+                                  const isPastCell =
+                                    timelineDate < todayUtc ||
+                                    (timelineDate === todayUtc &&
+                                      cellStartMin <= currentLocalMins);
+
+                                  if (isPastCell) {
+                                    return (
+                                      <div
+                                        key={cellStartMin}
+                                        className={`min-h-[58px] ${borderClass} bg-slate-50/60`}
+                                        title={t(
+                                          "ช่วงเวลาที่ผ่านไปแล้ว",
+                                          "Past time slot"
+                                        )}
+                                      />
+                                    );
+                                  }
+
+                                  const slotLabel = `${formatMinutesToTime(
+                                    cellStartMin
+                                  )}–${formatMinutesToTime(cellEndMin)}`;
+
+                                  return (
+                                    <button
+                                      key={cellStartMin}
+                                      type="button"
+                                      onClick={() =>
+                                        setEmptySlotPrompt({
+                                          facility: court,
+                                          startMinutes: cellStartMin,
+                                        })
+                                      }
+                                      aria-label={t(
+                                        `ช่องว่าง ${court.name} เวลา ${slotLabel}`,
+                                        `Available slot on ${court.name} at ${slotLabel}`
+                                      )}
+                                      title={slotLabel}
+                                      className={`min-h-[58px] ${borderClass} hover:bg-primary-light/60 transition-colors group flex items-center justify-center`}
+                                    >
+                                      <Plus className="w-3 h-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </button>
+                                  );
+                                })}
+
+                                {/* Continuous Positioned Booking Bars */}
+                                {courtBookingsOnDate.map((b) => {
+                                  const clampedStart = Math.max(
+                                    b.startMinutes,
+                                    TIMELINE_START_MIN
+                                  );
+                                  const clampedEnd = Math.min(
+                                    b.endMinutes,
+                                    TIMELINE_END_MIN
+                                  );
+                                  if (clampedEnd <= clampedStart) return null;
+
+                                  const leftPct =
+                                    ((clampedStart - TIMELINE_START_MIN) /
+                                      TIMELINE_TOTAL_MIN) *
+                                    100;
+                                  const widthPct =
+                                    ((clampedEnd - clampedStart) /
+                                      TIMELINE_TOTAL_MIN) *
+                                    100;
+
+                                  const usr =
+                                    typeof b.user === "object" ? b.user : null;
+                                  const status = getBookingComputedStatus(b);
+                                  const endTimeLabel = formatMinutesToTime(
+                                    b.endMinutes
+                                  );
+                                  const timeRangeLabel = `${b.startTime}–${endTimeLabel}`;
+                                  const isShortSlot =
+                                    clampedEnd - clampedStart <= 30;
+
+                                  return (
+                                    <button
+                                      key={b._id}
+                                      type="button"
+                                      onClick={() =>
+                                        setTimelineDrawerBooking(b)
+                                      }
+                                      style={{
+                                        left: `calc(${leftPct}% + 2px)`,
+                                        width: `calc(${widthPct}% - 4px)`,
+                                      }}
+                                      className={`absolute top-1.5 bottom-1.5 z-10 rounded-md px-1.5 py-1 border text-left transition-colors overflow-hidden flex flex-col justify-center ${
+                                        status === "completed"
+                                          ? "bg-[#EFECE6] hover:bg-[#E2DFD7] border-[#D8D3C8] text-[#4A4F4B]"
+                                          : "bg-[#EBF2EE] hover:bg-[#DCE9E1] border-[#C5DDD0] text-[#143628]"
+                                      }`}
+                                      title={`${formatBookingCode(
+                                        b._id
+                                      )} (${timeRangeLabel}) • ${
+                                        usr?.name || t("สมาชิก", "Booked")
+                                      }`}
+                                    >
+                                      <div
+                                        className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium truncate tabular-price max-w-full ${
+                                          status === "completed"
+                                            ? "bg-slate-600 text-white"
+                                            : "bg-primary text-white"
+                                        }`}
+                                      >
+                                        {isShortSlot
+                                          ? b.startTime
+                                          : timeRangeLabel}
+                                      </div>
+                                      <div className="text-[10px] font-medium truncate mt-0.5 px-0.5">
+                                        {usr?.name || t("สมาชิก", "Booked")}
+                                      </div>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
-
-                            {/* Hour Cells */}
-                            {TIMELINE_HOURS.map((hr) => {
-                              const cellStartMin = hr * 60;
-                              const cellEndMin = (hr + 1) * 60;
-
-                              const matchingBooking = courtBookingsOnDate.find(
-                                (b) =>
-                                  b.startMinutes < cellEndMin &&
-                                  b.endMinutes > cellStartMin
-                              );
-
-                              if (matchingBooking) {
-                                const usr =
-                                  typeof matchingBooking.user === "object"
-                                    ? matchingBooking.user
-                                    : null;
-                                const status =
-                                  getBookingComputedStatus(matchingBooking);
-                                return (
-                                  <button
-                                    key={hr}
-                                    type="button"
-                                    onClick={() =>
-                                      setTimelineDrawerBooking(matchingBooking)
-                                    }
-                                    className={`p-1.5 border-r border-[#EFECE6] text-left transition-colors ${
-                                      status === "completed"
-                                        ? "bg-[#EFECE6] hover:bg-[#E2DFD7] text-[#4A4F4B]"
-                                        : "bg-[#EBF2EE] hover:bg-[#DCE9E1] text-[#143628]"
-                                    }`}
-                                    title={`${formatBookingCode(
-                                      matchingBooking._id
-                                    )} (${matchingBooking.startTime}-${formatMinutesToTime(
-                                      matchingBooking.endMinutes
-                                    )})`}
-                                  >
-                                    <div className="px-1.5 py-1 rounded bg-primary text-white text-[10px] font-medium truncate tabular-price">
-                                      {matchingBooking.startTime}
-                                    </div>
-                                    <div className="text-[10px] font-medium truncate mt-0.5 px-0.5">
-                                      {usr?.name || t("สมาชิก", "Booked")}
-                                    </div>
-                                  </button>
-                                );
-                              }
-
-                              const now = new Date();
-                              const currentLocalMins =
-                                now.getHours() * 60 + now.getMinutes();
-                              const isPastCell =
-                                timelineDate < todayUtc ||
-                                (timelineDate === todayUtc &&
-                                  cellStartMin <= currentLocalMins);
-
-                              if (isPastCell) {
-                                return (
-                                  <div
-                                    key={hr}
-                                    className="min-h-[54px] border-r border-slate-100 bg-slate-50/60"
-                                    title={t(
-                                      "ช่วงเวลาที่ผ่านไปแล้ว",
-                                      "Past time slot"
-                                    )}
-                                  />
-                                );
-                              }
-
-                              return (
-                                <button
-                                  key={hr}
-                                  type="button"
-                                  onClick={() =>
-                                    setEmptySlotPrompt({
-                                      facility: court,
-                                      hour: hr,
-                                    })
-                                  }
-                                  aria-label={t(
-                                    `ช่องว่าง ${court.name} เวลา ${hr}:00`,
-                                    `Available slot on ${court.name} at ${hr}:00`
-                                  )}
-                                  className="min-h-[54px] border-r border-slate-100 hover:bg-primary-light/60 transition-colors group flex items-center justify-center"
-                                >
-                                  <Plus className="w-3.5 h-3.5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </button>
-                              );
-                            })}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -2007,8 +2074,8 @@ export default function AdminDashboardPage() {
               </div>
               <div className="text-xs text-slate-600 tabular-price">
                 {formatReadableDate(timelineDate, lang)} •{" "}
-                {String(emptySlotPrompt.hour).padStart(2, "0")}:00 –{" "}
-                {String(emptySlotPrompt.hour + 1).padStart(2, "0")}:00{" "}
+                {formatMinutesToTime(emptySlotPrompt.startMinutes)} –{" "}
+                {formatMinutesToTime(emptySlotPrompt.startMinutes + 30)}{" "}
                 {t("น.", "")}
               </div>
               <div className="text-sm font-semibold text-primary tabular-price">
